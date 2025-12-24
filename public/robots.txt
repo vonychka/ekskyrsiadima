@@ -1,0 +1,44 @@
+# robots.txt для сайта экскурсий по Нижнему Новгороду
+
+User-agent: *
+Allow: /
+
+# Разрешаем индексацию основных файлов
+Allow: /index.html
+Allow: /sitemap.xml
+Allow: /images/
+
+# Запрещаем индексацию служебных директорий
+Disallow: /src/
+Disallow: /node_modules/
+Disallow: /dist/
+Disallow: /.bolt/
+Disallow: /.vscode/
+Disallow: /*.map$
+Disallow: /*.ts$
+Disallow: /*.tsx$
+
+# Указываем путь к карте сайта
+Sitemap: https://vash-site.ru/sitemap.xml
+
+# Указываем местоположение сайта
+Host: https://vash-site.ru
+
+# Частота обхода для разных поисковых роботов
+Crawl-delay: 1
+
+# Для Googlebot
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+# Для Yandex
+User-agent: Yandex
+Allow: /
+Crawl-delay: 0.5
+Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content
+
+# Для Bing
+User-agent: bingbot
+Allow: /
+Crawl-delay: 1

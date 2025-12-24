@@ -1,0 +1,54 @@
+{
+  "rules": {
+    "tours": {
+      ".read": true,
+      ".write": "auth != null",
+      "$tourId": {
+        ".validate": "newData.hasChildren(['id', 'title', 'description', 'duration', 'pricing'])",
+        "pricing": {
+          "standard": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "child": { 
+            ".validate": "newData.isNumber() && newData.val() >= 0" 
+          },
+          "family": { 
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "$other": { ".validate": false }
+        },
+        "id": { ".validate": "newData.val() === $tourId" },
+        "title": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "description": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "duration": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "image": { ".validate": "newData.isString()" }
+      }
+    },
+    "schedules": {
+      ".read": true,
+      ".write": "auth != null",
+      "$scheduleId": {
+        ".validate": "newData.hasChildren(['id', 'tourId', 'date', 'time', 'availableSpots'])",
+        "availableSpots": { 
+          ".validate": "newData.isNumber() && newData.val() >= 0" 
+        },
+        "tourId": { ".validate": "newData.isString()" },
+        "date": { ".validate": "newData.isString()" },
+        "time": { ".validate": "newData.isString()" },
+        ".read": true,
+        ".write": "auth != null && (!newData.exists() || (newData.exists() && newData.hasChildren(['id', 'tourId', 'date', 'time', 'availableSpots'])))",
+        ".validate": "newData.hasChildren(['id', 'tourId', 'date', 'time', 'availableSpots']) || !newData.exists()"
+      }
+    },
+    "promoCodes": {
+      ".read": true,
+      ".write": "auth != null",
+      "$promoId": {
+        ".validate": "newData.hasChildren(['code', 'discountType', 'discountValue', 'maxUses', 'currentUses'])",
+        "code": { ".validate": "newData.isString()" },
+        "discountType": { ".validate": "newData.isString()" },
+        "discountValue": { ".validate": "newData.isNumber() && newData.val() > 0" },
+        "maxUses": { ".validate": "newData.isNumber() && newData.val() > 0" },
+        "currentUses": { ".validate": "newData.isNumber() && newData.val() >= 0" }
+      }
+    }
+  }
+}

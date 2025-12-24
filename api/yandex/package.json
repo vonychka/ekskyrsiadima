@@ -1,0 +1,12 @@
+{
+  "name": "yandex-pay-api",
+  "version": "1.0.0",
+  "description": "API сервер для Яндекс Пей",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
