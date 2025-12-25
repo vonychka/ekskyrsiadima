@@ -130,7 +130,8 @@ export default async function handler(req, res) {
       console.log('Tinkoff response:', JSON.stringify(result, null, 2));
 
       if (!response.ok) {
-        throw new Error(result.Message || 'Tinkoff API error');
+        console.error('Tinkoff API error response:', result);
+        throw new Error(result.Message || result.errorMessage || 'Tinkoff API error');
       }
 
       res.status(200).json(result);
