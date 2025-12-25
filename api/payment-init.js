@@ -10,19 +10,19 @@ const TINKOFF_CONFIG = {
 
 // Генерация токена для Тинькофф - ПРАВИЛЬНЫЙ АЛГОРИТМ
 function generateTinkoffToken(params) {
-  // Берем ТОЛЬКО эти поля для токена в алфавитном порядке
+  // Только эти поля в ТОЧНОМ порядке
   const tokenString = [
-    params.Amount,
-    params.CustomerKey,
-    params.Description,
-    params.OrderId,
-    params.PayType,
-    params.Recurrent,
-    params.TerminalKey
+    params.Amount,      // число в копейках
+    params.CustomerKey, // строка
+    params.Description, // строка
+    params.OrderId,     // строка
+    params.PayType,     // 'O' или 'S'
+    params.Recurrent,   // 'Y' или 'N'
+    params.TerminalKey  // строка
   ].join('') + TINKOFF_CONFIG.PASSWORD;
-
+  
   console.log('Token string:', tokenString);
-
+  
   return crypto
     .createHash('sha256')
     .update(tokenString)
