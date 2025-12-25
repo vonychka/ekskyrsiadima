@@ -74,7 +74,9 @@ export default async function handler(req, res) {
       Recurrent: 'N',
       // Добавляем URL для возврата на страницу билета с параметрами успеха
       SuccessURL: successUrl,
-      FailURL: 'https://ekskyrsiadima.ru/payment-error'
+      FailURL: 'https://ekskyrsiadima.ru/payment-error',
+      // Добавляем webhook для уведомлений о статусе оплаты
+      NotificationURL: 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-webhook'
     };
 
     // Генерируем токен с правильным порядком
