@@ -241,6 +241,7 @@ const PaymentPage = () => {
                     amount={finalPrice}
                     orderId={`tour-${tourId}-${Date.now()}`}
                     description={`Оплата экскурсии: ${currentTour.title}`}
+                    fullName={fullName}
                     email={email}
                     phone={phone}
                     onSuccess={(paymentUrl) => {

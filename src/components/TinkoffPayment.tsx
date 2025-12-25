@@ -5,8 +5,9 @@ interface TinkoffPaymentProps {
   amount: number;
   orderId: string;
   description: string;
-  email?: string;
-  phone?: string;
+  fullName: string;
+  email: string;
+  phone: string;
   onSuccess?: (paymentUrl: string) => void;
   onError?: (error: string) => void;
   className?: string;
@@ -16,6 +17,7 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
   amount,
   orderId,
   description,
+  fullName,
   email,
   phone,
   onSuccess,
@@ -56,7 +58,7 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
         if (data.PaymentURL) {
           // Сохраняем данные для отправки чека после редиректа
           const paymentData = {
-            fullName: '',
+            fullName: fullName,
             phone,
             email,
             tourTitle: description,
