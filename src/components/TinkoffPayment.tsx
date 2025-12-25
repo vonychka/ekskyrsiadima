@@ -46,6 +46,7 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
       });
 
       const data = await response.json();
+      console.log('Debug response:', data);
 
       if (!response.ok) {
         throw new Error(data.message || data.error || 'Ошибка при инициализации платежа');
