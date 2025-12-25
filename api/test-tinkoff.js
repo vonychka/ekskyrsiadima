@@ -6,15 +6,19 @@ const TINKOFF_CONFIG = {
 };
 
 function generateTinkoffToken(params) {
+  // Правильный порядок полей согласно документации Тинькофф
   const tokenString = [
-    params.Amount,
-    params.CustomerKey,
-    params.Description,
-    params.OrderId,
-    params.PayType,
-    params.Recurrent,
-    params.TerminalKey
-  ].join('') + TINKOFF_CONFIG.PASSWORD;
+    params.Amount,           // 1000
+    params.CustomerKey,      // test-123
+    params.Description,      // Тестовый платеж
+    params.OrderId,          // test-123
+    params.PayType,          // O
+    params.Recurrent,        // N
+    params.TerminalKey       // 1766479140271DEMO
+  ].join('') + TINKOFF_CONFIG.PASSWORD; // !BuR2jlFEFF25Hh5
+
+  console.log('Token string:', tokenString);
+  console.log('Expected: 1000test-123Тестовый платежtest-123ON1766479140271DEMO!BuR2jlFEFF25Hh5');
 
   return crypto.createHash('sha256').update(tokenString).digest('hex');
 }
