@@ -41,7 +41,8 @@ const TicketPage = () => {
         
         // Отправляем данные администратору в Telegram
         console.log('Отправка данных администратору в Telegram...');
-        sendToTelegram(ticketData);
+        const telegramResult = await sendToTelegram(ticketData);
+        console.log('Результат отправки в Telegram:', telegramResult);
         
         // Очищаем после использования
         localStorage.removeItem('pendingTicketData');
