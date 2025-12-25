@@ -1,4 +1,4 @@
-// api/tinkoff.js - Serverless функция для Тинькофф API
+// api/payment-init.js - Vercel serverless функция для Тинькофф API
 const crypto = require('crypto');
 
 // Конфигурация Тинькофф
@@ -31,50 +31,38 @@ function generateTinkoffToken(params) {
     .digest('hex');
 }
 
-// Основной handler для serverless функции
-exports.handler = async (event, context) => {
+// Основной handler для Vercel serverless функции
+export default async function handler(req, res) {
   // Установка CORS headers
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Content-Type': 'application/json'
-  };
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
   // Обработка OPTIONS запросов
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: ''
-    };
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
   }
 
   // Только POST запросы
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({
-        error: 'METHOD_NOT_ALLOWED',
-        message: 'Only POST requests are allowed'
-      })
-    };
+  if (req.method !== 'POST') {
+    res.status(405).json({
+      error: 'METHOD_NOT_ALLOWED',
+      message: 'Only POST requests are allowed'
+    });
+    return;
   }
 
   try {
-    const { amount, orderId, description, email, phone, customerKey } = JSON.parse(event.body);
+    const { amount, orderId, description, email, phone, customerKey } = req.body;
 
     // Валидация
     if (!amount || !orderId || !description) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({
-          error: 'VALIDATION_ERROR',
-          message: 'Отсутствуют обязательные параметры: amount, orderId, description'
-        })
-      };
+      res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'Отсутствуют обязательные параметры: amount, orderId, description'
+      });
+      return;
     }
 
     console.log('Received payment request:', { amount, orderId, description, email, phone, customerKey });
@@ -120,21 +108,13 @@ exports.handler = async (event, context) => {
       throw new Error(`Tinkoff API error: ${result.Message || tinkoffResponse.statusText}`);
     }
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(result)
-    };
+    res.status(200).json(result);
 
   } catch (error) {
     console.error('Tinkoff payment error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        error: 'SERVER_ERROR',
-        message: error.message || 'Внутренняя ошибка сервера'
-      })
-    };
+    res.status(500).json({
+      error: 'SERVER_ERROR',
+      message: error.message || 'Внутренняя ошибка сервера'
+    });
   }
-};
+}
