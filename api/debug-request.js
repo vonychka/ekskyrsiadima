@@ -45,10 +45,15 @@ export default async function handler(req, res) {
       Amount: Math.round(amount * 100),
       OrderId: String(orderId),
       Description: String(description).substring(0, 250),
-      CustomerKey: String(orderId), // Только OrderId, без email!
+      CustomerKey: String(orderId), // Должен быть ТОЧНО такой же как OrderId
       PayType: 'O',
       Recurrent: 'N'
     };
+
+    console.log('Проверка OrderId и CustomerKey:');
+    console.log('- OrderId:', String(orderId));
+    console.log('- CustomerKey:', String(orderId));
+    console.log('- Они совпадают:', String(orderId) === String(orderId));
 
     console.log('Данные для токена:', JSON.stringify(paymentData, null, 2));
 
