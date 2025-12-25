@@ -62,7 +62,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Точные параметры для Тинькофф API
+    // ТОЛЬКО МИНИМУМ данных для Тинькофф
     const paymentData = {
       TerminalKey: TINKOFF_CONFIG.TERMINAL_KEY,
       Amount: Math.round(amount * 100),
@@ -76,27 +76,10 @@ export default async function handler(req, res) {
     // Генерируем токен
     const token = generateTinkoffToken(paymentData);
     
-    // Создаем Receipt если есть email или phone
-    const receipt = (email || phone) ? {
-      Email: email,
-      Phone: phone ? phone.replace(/\D/g, '') : undefined,
-      Taxation: 'osn',
-      Items: [
-        {
-          Name: String(description).substring(0, 128),
-          Price: Math.round(amount * 100),
-          Quantity: 1,
-          Amount: Math.round(amount * 100),
-          Tax: 'none'
-        }
-      ]
-    } : undefined;
-    
-    // Финальные данные запроса
+    // Финальные данные - ТОЛЬКО минимум
     const requestData = {
       ...paymentData,
-      Token: token,
-      ...(receipt && { Receipt: receipt })
+      Token: token
     };
 
     console.log('Request to Tinkoff:', JSON.stringify(requestData, null, 2));
