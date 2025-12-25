@@ -24,6 +24,11 @@ function generateToken(paymentData) {
 
 export default async function handler(req, res) {
   try {
+    console.log('=== MOBILE PAYMENT DEBUG ===');
+    console.log('Method:', req.method);
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    
     // CORS для мобильных устройств
     const origin = req.headers.origin;
     const allowedOrigins = [
@@ -46,9 +51,22 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-    const { amount, orderId, description, email, phone, userAgent } = req.body;
+    // Проверяем обязательные поля
+    const { amount, orderId, description } = req.body;
     
-    console.log('Mobile payment request:', { amount, orderId, description, email, userAgent });
+    if (!amount || !orderId || !description) {
+      console.log('Missing required fields:', { amount, orderId, description });
+      return res.status(422).json({
+        Success: false,
+        ErrorCode: 'VALIDATION_ERROR',
+        Message: 'Отсутствуют обязательные поля',
+        Details: `Required: amount, orderId, description. Got: amount=${amount}, orderId=${orderId}, description=${description}`
+      });
+    }
+
+    const { email, phone, userAgent } = req.body;
+    
+    console.log('Mobile payment request:', { amount, orderId, description, email, phone, userAgent });
     
     // Чистые данные для мобильных устройств
     const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
