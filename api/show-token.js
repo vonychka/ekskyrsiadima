@@ -41,12 +41,13 @@ export default async function handler(req, res) {
 
     console.log('paymentData:', JSON.stringify(paymentData, null, 2));
 
-    // Генерация токена
+    // Генерация токена - ПРАВИЛЬНЫЙ ПОРЯДОК
     const values = [
       paymentData.Amount,
       paymentData.CustomerKey,
       paymentData.Description,
       paymentData.OrderId,
+      CONFIG.PASSWORD, // ПАРОЛЬ ПОСЛЕ OrderId!
       paymentData.PayType,
       paymentData.Recurrent,
       paymentData.TerminalKey
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
     
     console.log('values для токена:', values);
     
-    const stringToSign = values.join('') + CONFIG.PASSWORD;
+    const stringToSign = values.join(''); // БЕЗ добавления пароля в конец!
     const token = crypto.createHash('sha256').update(stringToSign).digest('hex');
 
     console.log('stringToSign:', stringToSign);

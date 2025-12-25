@@ -30,7 +30,7 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
     setError(null);
 
     try {
-      const response = await fetch('https://ekskyrsiadima-jhin.vercel.app/api/show-token', {
+      const response = await fetch('https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-working', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
