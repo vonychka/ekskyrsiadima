@@ -50,8 +50,8 @@ export default async function handler(req, res) {
       CustomerKey: String(orderId),
       PayType: 'O',
       Recurrent: 'N',
-      // Добавляем URL для возврата на страницу билета
-      SuccessURL: 'https://ekskyrsiadima.ru/ticket',
+      // Добавляем URL для возврата на страницу билета с параметрами успеха
+      SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true',
       FailURL: 'https://ekskyrsiadima.ru/payment-error'
     };
 
