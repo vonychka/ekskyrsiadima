@@ -1,14 +1,19 @@
-// Используем существующий Web3Forms сервис
-const WEB3FORMS_ACCESS_KEY = '2fa79352-bf0c-4752-8a27-8e63f0c864d3';
+// Используем SMTP через Nodemailer для отправки email
+import nodemailer from 'nodemailer';
 
 const sendTicketEmail = async (data) => {
   try {
-    const formData = new FormData();
-    formData.append('access_key', WEB3FORMS_ACCESS_KEY);
-    formData.append('subject', `🎫 БИЛЕТ: ${data.tourTitle} - ${data.fullName}`);
-    formData.append('from_name', 'Экскурсии с Бояриным');
-    formData.append('reply_to', data.email);
-    
+    // SMTP настройки для Gmail
+    const transporter = nodemailer.createTransporter({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'sokovdima3@gmail.com',
+        pass: process.env.SMTP_PASS // App password из Google
+      }
+    });
+
     const htmlMessage = `
       <h2>🎫 Билет на экскурсию</h2>
       <p><strong>Клиент:</strong> ${data.fullName}</p>
@@ -21,16 +26,17 @@ const sendTicketEmail = async (data) => {
       <p>Отправлено автоматически после оплаты</p>
     `;
     
-    formData.append('message', htmlMessage);
+    const mailOptions = {
+      from: `"Экскурсии с Бояриным" <sokovdima3@gmail.com>`,
+      to: data.email,
+      subject: `🎫 Билет: ${data.tourTitle} - ${data.fullName}`,
+      html: htmlMessage,
+      replyTo: 'sokovdima3@gmail.com'
+    };
     
-    const response = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      body: formData
-    });
-    
-    const result = await response.json();
-    console.log('Web3Forms билет результат:', result);
-    return result.success ? { success: true, message: 'Билет отправлен' } : { success: false, message: 'Ошибка отправки' };
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Билет отправлен через Gmail:', result.messageId);
+    return { success: true, message: 'Билет отправлен' };
   } catch (error) {
     console.error('Ошибка отправки билета:', error);
     return { success: false, message: error.message };
@@ -39,10 +45,17 @@ const sendTicketEmail = async (data) => {
 
 const sendAdminNotification = async (data) => {
   try {
-    const formData = new FormData();
-    formData.append('access_key', WEB3FORMS_ACCESS_KEY);
-    formData.append('subject', `💰 НОВАЯ ОПЛАТА: ${data.tourTitle} - ${data.finalPrice} ₽`);
-    
+    // SMTP настройки для Gmail
+    const transporter = nodemailer.createTransporter({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'sokovdima3@gmail.com',
+        pass: process.env.SMTP_PASS // App password из Google
+      }
+    });
+
     const htmlMessage = `
       <h2>💰 Получена оплата!</h2>
       <p><strong>Клиент:</strong> ${data.fullName}</p>
@@ -55,16 +68,16 @@ const sendAdminNotification = async (data) => {
       <p>Отправлено автоматически</p>
     `;
     
-    formData.append('message', htmlMessage);
+    const mailOptions = {
+      from: `"Экскурсии с Бояриным" <sokovdima3@gmail.com>`,
+      to: 'sokovdima3@gmail.com', // Администратор получает уведомление
+      subject: `💰 НОВАЯ ОПЛАТА: ${data.tourTitle} - ${data.finalPrice} ₽`,
+      html: htmlMessage
+    };
     
-    const response = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      body: formData
-    });
-    
-    const result = await response.json();
-    console.log('Web3Forms уведомление результат:', result);
-    return result.success ? { success: true, message: 'Уведомление отправлено' } : { success: false, message: 'Ошибка отправки' };
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Уведомление отправлено через Gmail:', result.messageId);
+    return { success: true, message: 'Уведомление отправлено' };
   } catch (error) {
     console.error('Ошибка отправки уведомления:', error);
     return { success: false, message: error.message };
