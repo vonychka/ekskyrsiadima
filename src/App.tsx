@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { ToursProvider } from './context/ToursContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import TestTelegramButton from './components/TestTelegramButton';
 import HomePage from './pages/HomePage';
 import TourDetails from './pages/TourDetails';
 import PaymentPage from './pages/PaymentPage';
@@ -47,6 +48,7 @@ function App() {
               </Suspense>
             </main>
             <Footer />
+            <TestTelegramButton />
           </div>
         </Router>
       </ToursProvider>
