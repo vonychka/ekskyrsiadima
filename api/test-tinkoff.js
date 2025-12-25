@@ -1,3 +1,24 @@
+import crypto from 'crypto';
+
+const TINKOFF_CONFIG = {
+  TERMINAL_KEY: '1766479140271DEMO',
+  PASSWORD: '!BuR2jlFEFF25Hh5'
+};
+
+function generateTinkoffToken(params) {
+  const tokenString = [
+    params.Amount,
+    params.CustomerKey,
+    params.Description,
+    params.OrderId,
+    params.PayType,
+    params.Recurrent,
+    params.TerminalKey
+  ].join('') + TINKOFF_CONFIG.PASSWORD;
+
+  return crypto.createHash('sha256').update(tokenString).digest('hex');
+}
+
 export default async function handler(req, res) {
   try {
     // CORS
@@ -10,17 +31,20 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Тестовый запрос с минимальными данными
+    // Тестовый запрос с правильным токеном
     const testData = {
-      TerminalKey: '1766479140271DEMO',
+      TerminalKey: TINKOFF_CONFIG.TERMINAL_KEY,
       Amount: 1000,
       OrderId: 'test-123',
       Description: 'Тестовый платеж',
       CustomerKey: 'test-123',
       PayType: 'O',
-      Recurrent: 'N',
-      Token: 'test-token'
+      Recurrent: 'N'
     };
+
+    // Генерируем правильный токен
+    const token = generateTinkoffToken(testData);
+    testData.Token = token;
 
     console.log('Test request to Tinkoff:', JSON.stringify(testData, null, 2));
 
