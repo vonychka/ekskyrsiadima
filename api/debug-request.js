@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 export default async function handler(req, res) {
   try {
     // CORS
@@ -46,7 +48,7 @@ export default async function handler(req, res) {
     
     console.log('String for token:', stringToSign);
     
-    paymentData.Token = require('crypto').createHash('sha256').update(stringToSign).digest('hex');
+    paymentData.Token = crypto.createHash('sha256').update(stringToSign).digest('hex');
 
     console.log('Final payment data:', JSON.stringify(paymentData, null, 2));
 
