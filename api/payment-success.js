@@ -86,12 +86,18 @@ const sendAdminNotification = async (data) => {
 
 export default async function handler(req, res) {
   try {
+    console.log('=== PAYMENT SUCCESS API START ===');
+    console.log('Method:', req.method);
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    
     // CORS
     res.setHeader('Access-Control-Allow-Origin', 'https://ekskyrsiadima.ru');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
+      console.log('OPTIONS request - returning 200');
       return res.status(200).end();
     }
 
@@ -111,7 +117,19 @@ export default async function handler(req, res) {
       paymentMethod = 'Тинькофф'
     } = req.body;
 
-    console.log('Получен запрос на отправку чека после успешной оплаты:', req.body);
+    console.log('Получен запрос на отправку чека:', { 
+      fullName, 
+      phone, 
+      email, 
+      tourTitle, 
+      finalPrice, 
+      paymentId, 
+      paymentMethod 
+    });
+
+    // Проверяем SMTP настройки
+    console.log('SMTP_PASS существует:', !!process.env.SMTP_PASS);
+    console.log('SMTP_PASS длина:', process.env.SMTP_PASS?.length || 0);
 
     // Данные для email
     const emailData = {
@@ -129,28 +147,40 @@ export default async function handler(req, res) {
       paymentMethod
     };
 
+    console.log('Начинаю отправку билета клиенту...');
+    
     // Отправляем билет клиенту
     const ticketResult = await sendTicketEmail(emailData);
+    console.log('Результат отправки билета:', ticketResult);
+    
+    console.log('Начинаю отправку уведомления администратору...');
     
     // Отправляем уведомление администратору
     const adminResult = await sendAdminNotification(emailData);
-
-    console.log('Результат отправки билета:', ticketResult);
     console.log('Результат уведомления администратора:', adminResult);
+
+    console.log('=== PAYMENT SUCCESS API END ===');
 
     res.status(200).json({
       success: true,
       message: 'Чек и уведомления отправлены',
       ticketSent: ticketResult.success,
       adminNotified: adminResult.success,
-      paymentId
+      paymentId,
+      ticketResult,
+      adminResult
     });
 
   } catch (error) {
+    console.error('=== PAYMENT SUCCESS API ERROR ===');
     console.error('Ошибка при отправке чека:', error);
+    console.error('Stack trace:', error.stack);
+    
     res.status(500).json({ 
       success: false, 
-      message: 'Ошибка при отправке чека: ' + error.message 
+      message: 'Ошибка при отправке чека: ' + error.message,
+      error: error.message,
+      stack: error.stack
     });
   }
 }
