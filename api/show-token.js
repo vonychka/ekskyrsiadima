@@ -27,11 +27,13 @@ export default async function handler(req, res) {
     console.log('- description:', description, '(тип:', typeof description, ')');
     
     // Данные для токена
+    const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
+    
     const paymentData = {
       TerminalKey: CONFIG.TERMINAL_KEY,
       Amount: Math.round(amount * 100),
       OrderId: String(orderId),
-      Description: String(description).substring(0, 250),
+      Description: cleanDescription.substring(0, 250),
       CustomerKey: String(orderId),
       PayType: 'O',
       Recurrent: 'N'
