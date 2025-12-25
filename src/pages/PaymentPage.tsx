@@ -1,35 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToursContext } from '../context/ToursContext';
 import BankRedirectPayment from '../components/BankRedirectPayment';
-import SBPPayment from '../components/SBPPayment';
-import { CheckCircle, AlertCircle, CreditCard, Smartphone } from 'lucide-react';
-import { sendBookingEmail, sendTicketEmail } from '../utils/emailService';
+import { TinkoffPayment } from '../components/TinkoffPayment';
+import { AlertCircle, CreditCard } from 'lucide-react';
 
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { tours, schedules } = useToursContext();
+  const { tours } = useToursContext();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   const [selectedDate, setSelectedDate] = useState('');
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'completed' | 'error'>('pending');
-  const [showNotification, setShowNotification] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'bank' | 'sbp'>('sbp'); // По умолчанию СБП
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedPromoCode, setAppliedPromoCode] = useState('');
-  const [selectedTariff, setSelectedTariff] = useState('standard');
   const [tourId, setTourId] = useState('');
-  const [scheduleId, setScheduleId] = useState('');
-  const [scheduleData, setScheduleData] = useState<any>(null);
-  const [numberOfPeople, setNumberOfPeople] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
@@ -40,128 +32,29 @@ const PaymentPage = () => {
       return;
     }
     
-    const { tourId, scheduleId, scheduleData, numberOfPeople, selectedTariff: tariff, totalAmount, appliedPromoCode, discountAmount } = location.state as any;
+    const { tourId: id, scheduleData: data, totalAmount, appliedPromoCode: promo, discountAmount: discount } = location.state as any;
     
-    setTourId(tourId);
-    setScheduleId(scheduleId);
-    setScheduleData(scheduleData);
-    setNumberOfPeople(numberOfPeople);
-    setSelectedTariff(tariff || 'standard');
+    setTourId(id);
     setTotalPrice(totalAmount);
-    setAppliedPromoCode(appliedPromoCode || '');
-    setDiscountAmount(discountAmount || 0);
-    setDiscountedPrice(totalAmount - (discountAmount || 0));
+    setAppliedPromoCode(promo || '');
+    setDiscountAmount(discount || 0);
+    setDiscountedPrice(totalAmount - (discount || 0));
     
-    const tour = tours.find(t => t.id === tourId);
-    if (scheduleId) {
-      const selectedSchedule = schedules.find((s: any) => s.id === scheduleId);
-      if (selectedSchedule) {
-        setSelectedDate(selectedSchedule.date);
-      }
+    if (data) {
+      setSelectedDate(data.date);
     }
-  }, [location.state, tours, navigate]);
+  }, [location.state, navigate]);
 
   const bookingData = location.state;
-  const tour = tours.find(t => t.id === tourId);
+  const currentTour = tours.find(t => t.id === tourId);
 
   const finalPrice = discountedPrice !== null ? discountedPrice : totalPrice;
   
-  const getTourDate = () => {
-    if (bookingData && bookingData.scheduleData) {
-      // Используем scheduleData из состояния навигации
-      const schedule = bookingData.scheduleData;
-      return schedule.date;
-    }
-    if (bookingData && bookingData.scheduleId) {
-      const selectedSchedule = schedules.find((s: any) => s.id === bookingData.scheduleId);
-      if (selectedSchedule) {
-        return selectedSchedule.date;
-      }
-    }
-    return '';
-  };
-
-  const getTourTime = () => {
-    if (bookingData && bookingData.scheduleData) {
-      // Используем scheduleData из состояния навигации
-      const schedule = bookingData.scheduleData;
-      return schedule.time;
-    }
-    if (bookingData && bookingData.scheduleId) {
-      const selectedSchedule = schedules.find((s: any) => s.id === bookingData.scheduleId);
-      if (selectedSchedule) {
-        return selectedSchedule.time;
-      }
-    }
-    return '';
-  };
-
   // Проверка заполнения всех данных
   const isUserDataComplete = () => {
     return fullName.trim() !== '' && 
            phone.trim() !== '' && 
            email.trim() !== '';
-  };
-
-  const handlePaymentComplete = (paymentId?: string) => {
-    setPaymentStatus('processing');
-    
-    // Отправляем email с данными о бронировании
-    const sendBookingEmailAsync = async () => {
-      try {
-        const emailData = {
-          fullName,
-          phone,
-          email,
-          tourTitle: tour?.title || '',
-          tourDate: getTourDate(),
-          tourTime: getTourTime(),
-          numberOfPeople,
-          selectedTariff,
-          finalPrice,
-          promoCode: appliedPromoCode,
-          discountAmount,
-          paymentMethod: paymentMethod === 'bank' ? 'Банковский перевод' : 'СБП',
-          paymentId: paymentId || 'N/A'
-        };
-        
-        const emailResult = await sendBookingEmail(emailData);
-        
-        if (emailResult.success) {
-          console.log('Email о бронировании успешно отправлен');
-        } else {
-          console.error('Ошибка отправки email:', emailResult.message);
-        }
-        
-        // Отправляем билет пользователю
-        const ticketResult = await sendTicketEmail(emailData);
-        
-        if (ticketResult.success) {
-          console.log('Билет успешно отправлен пользователю');
-        } else {
-          console.error('Ошибка отправки билета пользователю:', ticketResult.message);
-        }
-      } catch (error) {
-        console.error('Ошибка при отправке email:', error);
-      }
-    };
-    
-    // Запускаем отправку email асинхронно, не дожидаясь завершения
-    sendBookingEmailAsync();
-    
-    setTimeout(() => {
-      setPaymentStatus('completed');
-      setShowNotification(true);
-      
-      setTimeout(() => {
-        navigate('/payment/success', {
-          state: {
-            ...bookingData,
-            paymentId: paymentId
-          }
-        });
-      }, 3000);
-    }, 2000);
   };
 
 
@@ -182,7 +75,7 @@ const PaymentPage = () => {
     );
   }
 
-  if (!tour) {
+  if (!currentTour) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center">
@@ -217,7 +110,7 @@ const PaymentPage = () => {
                 onClick={() => navigate(`/tour/${tourId}`)}
                 className="hover:text-blue-600"
               >
-                {tour.title}
+                {currentTour.title}
               </button>
             </li>
             <li>/</li>
@@ -226,21 +119,21 @@ const PaymentPage = () => {
         </nav>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold mb-4">{tour.title}</h1>
+          <h1 className="text-3xl font-bold mb-4">{currentTour.title}</h1>
           
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-semibold mb-2">Описание:</h3>
-              <p className="text-gray-600 mb-4">{tour.description}</p>
+              <p className="text-gray-600 mb-4">{currentTour.description}</p>
               
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Длительность:</span>
-                  <span className="font-medium">{tour.duration}</span>
+                  <span className="font-medium">{currentTour.duration}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Категория:</span>
-                  <span className="font-medium">{tour.category}</span>
+                  <span className="font-medium">{currentTour.category}</span>
                 </div>
               </div>
             </div>
@@ -250,15 +143,15 @@ const PaymentPage = () => {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Стандарт:</span>
-                  <span className="font-medium">{tour.pricing.standard} ₽</span>
+                  <span className="font-medium">{currentTour.pricing.standard} ₽</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Детский:</span>
-                  <span className="font-medium">{tour.pricing.child} ₽</span>
+                  <span className="font-medium">{currentTour.pricing.child} ₽</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Семейный:</span>
-                  <span className="font-medium">{tour.pricing.family} ₽</span>
+                  <span className="font-medium">{currentTour.pricing.family} ₽</span>
                 </div>
               </div>
               
@@ -333,13 +226,49 @@ const PaymentPage = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-xl font-bold mb-4">Способ оплаты</h2>
             
-            <div className="w-full">
-              <div className="p-6 rounded-lg border-2 border-blue-500 bg-blue-50 text-center">
-                <div className="flex flex-col items-center space-y-3">
-                  <CreditCard className="w-8 h-8 text-blue-600" />
-                  <div>
-                    <h3 className="font-semibold text-lg">Банковская карта</h3>
-                    <p className="text-sm text-gray-600">Оплата через безопасный шлюз Тинькофф</p>
+            <div className="space-y-4">
+              {/* Тинькофф оплата */}
+              <div className="w-full">
+                <div className="p-4 border-2 border-blue-200 bg-blue-50 rounded-lg">
+                  <div className="flex flex-col items-center space-y-3 mb-4">
+                    <CreditCard className="w-8 h-8 text-blue-600" />
+                    <div className="text-center">
+                      <h3 className="font-semibold text-lg text-blue-900">Тинькофф Банк</h3>
+                      <p className="text-sm text-blue-700">Оплата через безопасный шлюз Тинькофф</p>
+                    </div>
+                  </div>
+                  <TinkoffPayment
+                    amount={finalPrice}
+                    orderId={`tour-${tourId}-${Date.now()}`}
+                    description={`Оплата экскурсии: ${currentTour.title}`}
+                    email={email}
+                    phone={phone}
+                    onSuccess={(paymentUrl) => {
+                      console.log('Redirecting to Tinkoff payment:', paymentUrl);
+                    }}
+                    onError={(error) => {
+                      console.error('Tinkoff payment error:', error);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Разделитель */}
+              <div className="flex items-center space-x-4">
+                <div className="flex-1 h-px bg-gray-300"></div>
+                <span className="text-sm text-gray-500">или</span>
+                <div className="flex-1 h-px bg-gray-300"></div>
+              </div>
+
+              {/* Другие способы оплаты */}
+              <div className="w-full">
+                <div className="p-6 border-2 border-gray-300 bg-gray-50 text-center rounded-lg">
+                  <div className="flex flex-col items-center space-y-3">
+                    <CreditCard className="w-8 h-8 text-gray-600" />
+                    <div>
+                      <h3 className="font-semibold text-lg">Другие способы оплаты</h3>
+                      <p className="text-sm text-gray-600">Банковские карты и электронные кошельки</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -352,36 +281,15 @@ const PaymentPage = () => {
           <BankRedirectPayment
             amount={finalPrice}
             tourDetails={{
-              title: tour.title,
+              title: currentTour.title,
               date: selectedDate,
               fullName: fullName,
               phone: phone,
               email: email,
               promoCode: appliedPromoCode
             }}
-            onPaymentComplete={handlePaymentComplete}
             onPaymentError={(error) => console.error('Bank payment error:', error)}
           />
-        )}
-        
-        {showNotification && (
-          <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-            paymentStatus === 'completed' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-          }`}>
-            <div className="flex items-center space-x-2">
-              {paymentStatus === 'completed' ? (
-                <CheckCircle className="w-5 h-5" />
-              ) : (
-                <AlertCircle className="w-5 h-5" />
-              )}
-              <span>
-                {paymentStatus === 'completed' 
-                  ? 'Платеж успешно обработан! Перенаправление...' 
-                  : 'Ошибка при обработке платежа. Попробуйте еще раз.'
-                }
-              </span>
-            </div>
-          </div>
         )}
 
         <div className="mt-6 bg-blue-50 rounded-lg p-4">

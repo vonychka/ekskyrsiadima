@@ -365,3 +365,104 @@ export const sendPromoCodeEmail = async (data: EmailData): Promise<Web3FormsResp
     return { success: false, message: 'Ошибка при отправке email о промокоде: ' + (error as Error).message };
   }
 };
+
+export const sendAdminNotification = async (data: EmailData): Promise<Web3FormsResponse> => {
+  try {
+    const formData = new FormData();
+    
+    // Основные данные
+    formData.append('access_key', WEB3FORMS_ACCESS_KEY);
+    formData.append('subject', `🎉 НОВАЯ ОПЛАТА: ${data.tourTitle} - ${data.fullName} - ${data.finalPrice} ₽`);
+    
+    // Данные клиента
+    formData.append('fullName', data.fullName);
+    formData.append('phone', data.phone);
+    formData.append('email', data.email);
+    
+    // Данные экскурсии
+    formData.append('tourTitle', data.tourTitle);
+    formData.append('tourDate', data.tourDate);
+    formData.append('tourTime', data.tourTime);
+    formData.append('numberOfPeople', data.numberOfPeople.toString());
+    formData.append('selectedTariff', data.selectedTariff);
+    formData.append('finalPrice', data.finalPrice.toString());
+    
+    // Метод оплаты
+    if (data.paymentMethod) {
+      formData.append('paymentMethod', data.paymentMethod);
+    }
+    
+    // Промокод (если есть)
+    if (data.promoCode) {
+      formData.append('promoCode', data.promoCode);
+    }
+    
+    if (data.discountAmount) {
+      formData.append('discountAmount', data.discountAmount.toString());
+    }
+    
+    // Формируем HTML сообщение для уведомления администратора
+    const htmlMessage = `
+      <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 10px; padding: 20px; margin: 20px 0;">
+        <h2 style="color: #155724; margin: 0 0 10px 0;">🎉 ПОЛУЧЕНА ОПЛАТА!</h2>
+        <p style="color: #155724; margin: 0; font-size: 18px; font-weight: bold;">
+          Сумма: ${data.finalPrice.toLocaleString('ru-RU')} ₽
+        </p>
+      </div>
+      
+      <h3>📋 Детали оплаты:</h3>
+      <p><strong>ФИО клиента:</strong> ${data.fullName}</p>
+      <p><strong>Телефон:</strong> ${data.phone}</p>
+      <p><strong>Email:</strong> ${data.email}</p>
+      <p><strong>Метод оплаты:</strong> ${data.paymentMethod || 'Не указан'}</p>
+      
+      <h3>🚌 Экскурсия:</h3>
+      <p><strong>Название:</strong> ${data.tourTitle}</p>
+      <p><strong>Дата:</strong> ${data.tourDate}</p>
+      <p><strong>Время:</strong> ${data.tourTime}</p>
+      <p><strong>Количество человек:</strong> ${data.numberOfPeople}</p>
+      <p><strong>Тариф:</strong> ${data.selectedTariff}</p>
+      <p><strong>Итоговая цена:</strong> ${data.finalPrice.toLocaleString('ru-RU')} ₽</p>
+      
+      ${data.promoCode ? `
+      <h3>🎁 Промокод:</h3>
+      <p><strong>Код:</strong> ${data.promoCode}</p>
+      <p><strong>Скидка:</strong> ${data.discountAmount?.toLocaleString('ru-RU')} ₽</p>
+      ` : ''}
+      
+      <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;">
+        <h4 style="color: #856404; margin-top: 0;">⚡ Что делать дальше:</h4>
+        <ol style="color: #856404; line-height: 1.6;">
+          <li>Проверьте поступление платежа на счет</li>
+          <li>Отправьте билет клиенту на email: ${data.email}</li>
+          <li>За 24 часа до экскурсии отправьте напоминание</li>
+          <li>При необходимости свяжитесь с клиентом: ${data.phone}</li>
+        </ol>
+      </div>
+      
+      <hr>
+      <p><em>Это уведомление отправлено автоматически после успешной оплаты</em></p>
+    `;
+    
+    formData.append('message', htmlMessage);
+    
+    const response = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('Уведомление администратору успешно отправлено:', result);
+      return { success: true, message: 'Уведомление администратору отправлено' };
+    } else {
+      console.error('Ошибка отправки уведомления администратору:', result);
+      return { success: false, message: result.message || 'Ошибка отправки уведомления' };
+    }
+    
+  } catch (error: unknown) {
+    console.error('Ошибка при отправке уведомления администратору:', error);
+    return { success: false, message: 'Ошибка при отправке уведомления: ' + (error as Error).message };
+  }
+};

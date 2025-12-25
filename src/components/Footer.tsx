@@ -7,10 +7,10 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-200 pt-6">
           <div className="text-center text-sm text-gray-500">
             <p>© {new Date().getFullYear()} ТурАгентстводима. Все права защищены.</p>
-            <p className="mt-2">ИНН: 7707083893</p>
+            <p className="mt-2">ИНН: 525716902100</p>
             <p className="mt-2">
               <a 
-                href="https://cv91330.tw1.ru/txt2pdf_68c18a11ecfdf.pdf" 
+                href="/Публичная оферта.pdf" 
                 className="text-blue-600 hover:text-blue-800 hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -20,7 +20,7 @@ const Footer: React.FC = () => {
             </p>
             <p className="mt-2">
               <a 
-                href="https://cv91330.tw1.ru/txt2pdf_68c18bf0edf2e.pdf" 
+                href="/Новый документ.pdf" 
                 className="text-blue-600 hover:text-blue-800 hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"

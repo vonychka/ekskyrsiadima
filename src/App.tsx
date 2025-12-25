@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { ToursProvider } from './context/ToursContext';
@@ -7,7 +7,10 @@ import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import TourDetails from './pages/TourDetails';
 import PaymentPage from './pages/PaymentPage';
-import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentError from './pages/PaymentError';
+import { TinkoffPaymentSuccess } from './pages/TinkoffPaymentSuccess';
+import { TinkoffPaymentError } from './pages/TinkoffPaymentError';
 import TicketPage from './pages/TicketPage';
 import AdminPanel from './pages/AdminPanel';
 import { LoadingSpinner } from './components/LoadingSpinner';
@@ -36,7 +39,9 @@ function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/tour/:tourId" element={<TourDetails />} />
                   <Route path="/payment" element={<PaymentPage />} />
-                  <Route path="/payment/success" element={<PaymentSuccessPage />} />
+                  <Route path="/payment/success" element={<PaymentSuccess />} />
+                  <Route path="/payment/failure" element={<TinkoffPaymentError />} />
+                  <Route path="/payment/error" element={<PaymentError />} />
                   <Route path="/ticket" element={<TicketPage />} />
                   <Route path="/admin" element={<AdminPanel />} />
                 </Routes>
