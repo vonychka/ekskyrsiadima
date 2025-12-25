@@ -55,10 +55,10 @@ export default async function handler(req, res) {
     
     // Определяем домен для SuccessURL
     const referer = req.headers.referer || '';
-    let successUrl = 'https://ekskyrsiadima.ru/ticket?success=true';
+    let successUrl = 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId);
     
     if (referer.includes('cv91330.tw1.ru')) {
-      successUrl = 'https://cv91330.tw1.ru/ticket?success=true';
+      successUrl = 'https://cv91330.tw1.ru/ticket?success=true&paymentId=' + String(orderId);
     }
     
     console.log('Referer:', referer);
