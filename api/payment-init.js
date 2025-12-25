@@ -103,23 +103,38 @@ export default async function handler(req, res) {
 
     console.log('Final request data:', JSON.stringify(requestData, null, 2));
 
-    // Отправляем запрос в Тинькофф
-    const tinkoffResponse = await fetch(`${TINKOFF_CONFIG.API_URL}/Init`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestData)
-    });
+    // Отправляем запрос в Тинькофф с таймаутом
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд таймаут
 
-    const result = await tinkoffResponse.json();
-    console.log('Tinkoff response:', JSON.stringify(result, null, 2));
+    try {
+      const tinkoffResponse = await fetch(`${TINKOFF_CONFIG.API_URL}/Init`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+        signal: controller.signal
+      });
 
-    if (!tinkoffResponse.ok) {
-      throw new Error(`Tinkoff API error: ${result.Message || tinkoffResponse.statusText}`);
+      clearTimeout(timeoutId);
+
+      const result = await tinkoffResponse.json();
+      console.log('Tinkoff response:', JSON.stringify(result, null, 2));
+
+      if (!tinkoffResponse.ok) {
+        throw new Error(`Tinkoff API error: ${result.Message || tinkoffResponse.statusText}`);
+      }
+
+      res.status(200).json(result);
+
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        throw new Error('Таймаут запроса к Тинькофф API');
+      }
+      throw fetchError;
     }
-
-    res.status(200).json(result);
 
   } catch (error) {
     console.error('Tinkoff payment error:', error);
