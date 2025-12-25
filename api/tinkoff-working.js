@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import { createHash } from 'crypto';
 
 const CONFIG = {
   TERMINAL_KEY: '1766479140271DEMO',
@@ -19,7 +19,7 @@ function generateToken(paymentData) {
     paymentData.TerminalKey
   ].join('');
   
-  return crypto.createHash('sha256').update(tokenString).digest('hex');
+  return createHash('sha256').update(tokenString).digest('hex');
 }
 
 export default async function handler(req, res) {
