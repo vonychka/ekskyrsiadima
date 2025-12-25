@@ -34,10 +34,19 @@ function generateTinkoffToken(params) {
 // Основной handler для Vercel serverless функции
 module.exports = async (req, res) => {
   try {
-    // Установка CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    // Установка CORS headers для работы с ekskyrsiadima.ru
+    const origin = req.headers.origin;
+    const allowedOrigins = ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima-jhin.vercel.app', 'https://ekskyrsiadima-jhin.vercel.app'];
+    
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', 'https://ekskyrsiadima.ru');
+    }
+    
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
 
     // Обработка OPTIONS запросов
     if (req.method === 'OPTIONS') {
