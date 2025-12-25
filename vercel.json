@@ -1,10 +1,11 @@
 {
   "version": 2,
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "builds": [
-    {
-      "src": "api/payment-init.js",
-      "use": "@vercel/node"
-    },
     {
       "src": "package.json",
       "use": "@vercel/static-build",
