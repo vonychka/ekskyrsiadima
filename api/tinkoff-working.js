@@ -64,6 +64,27 @@ export default async function handler(req, res) {
     console.log('Referer:', referer);
     console.log('SuccessURL будет:', successUrl);
     
+    // Создаем объект Receipt (чек) для Тинькофф
+    const receipt = {
+      Email: email,
+      Phone: phone,
+      EmailCompany: 'sokovdima3@gmail.com',
+      TaxationSystem: 'USNIncome', // УСН Доход
+      Items: [
+        {
+          Name: cleanDescription.substring(0, 128), // Название экскурсии
+          Price: Math.round(amount * 100), // Цена в копейках
+          Quantity: 1, // Количество
+          Amount: Math.round(amount * 100), // Сумма в копейках
+          Tax: 'none', // Без НДС
+          PaymentMethod: 'full_prepayment', // Полная предоплата
+          PaymentObject: 'service' // Услуга
+        }
+      ]
+    };
+    
+    console.log('Receipt объект:', JSON.stringify(receipt, null, 2));
+    
     const paymentData = {
       TerminalKey: CONFIG.TERMINAL_KEY,
       Amount: Math.round(amount * 100),
@@ -76,7 +97,9 @@ export default async function handler(req, res) {
       SuccessURL: successUrl,
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
       // Добавляем webhook для уведомлений о статусе оплаты
-      NotificationURL: 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-webhook'
+      NotificationURL: 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-webhook',
+      // Добавляем чек для webhook уведомлений
+      Receipt: receipt
     };
 
     // Генерируем токен с правильным порядком
