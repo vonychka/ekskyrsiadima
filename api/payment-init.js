@@ -62,13 +62,15 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Минимальные обязательные параметры
+    // Точные параметры для Тинькофф API
     const paymentData = {
       TerminalKey: TINKOFF_CONFIG.TERMINAL_KEY,
       Amount: Math.round(amount * 100),
-      OrderId: orderId,
-      Description: description.substring(0, 250),
-      CustomerKey: customerKey || orderId
+      OrderId: String(orderId),
+      Description: String(description).substring(0, 250),
+      CustomerKey: String(customerKey || orderId),
+      PayType: 'O',
+      Recurrent: 'N'
     };
 
     // Генерируем токен
