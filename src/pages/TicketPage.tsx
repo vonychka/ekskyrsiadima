@@ -4,6 +4,7 @@ import { useToursContext } from '../context/ToursContext';
 import { CheckCircle, Download, Share2, Home } from 'lucide-react';
 import { sendPromoCodeEmail, sendTicketEmail } from '../utils/emailService';
 import { sendTicketEmailWeb3Forms } from '../utils/emailWeb3Forms';
+import { sendToTelegram } from '../utils/telegramBot';
 
 const TicketPage = () => {
   const location = useLocation();
@@ -37,6 +38,10 @@ const TicketPage = () => {
         
         console.log('Отправка билета после успешной оплаты Тинькофф...');
         sendTicketEmailWeb3Forms(ticketData);
+        
+        // Отправляем данные администратору в Telegram
+        console.log('Отправка данных администратору в Telegram...');
+        sendToTelegram(ticketData);
         
         // Очищаем после использования
         localStorage.removeItem('pendingTicketData');
