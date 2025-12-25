@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Mail, Send, Check, X } from 'lucide-react';
+
+interface TestResult {
+  success: boolean;
+  message: string;
+  details?: any;
+}
 
 const TestEmailButton = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<TestResult | null>(null);
   const [testEmail, setTestEmail] = useState('sokovdima3@gmail.com');
 
   const testEmailSending = async () => {
@@ -58,7 +64,7 @@ const TestEmailButton = () => {
       setResult({
         success: false,
         message: '❌ Сетевая ошибка',
-        details: error.message
+        details: error instanceof Error ? error.message : 'Неизвестная ошибка'
       });
     } finally {
       setIsLoading(false);

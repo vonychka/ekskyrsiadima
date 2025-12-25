@@ -10,7 +10,6 @@ import TourDetails from './pages/TourDetails';
 import PaymentPage from './pages/PaymentPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentError from './pages/PaymentError';
-import { TinkoffPaymentSuccess } from './pages/TinkoffPaymentSuccess';
 import { TinkoffPaymentError } from './pages/TinkoffPaymentError';
 import TicketPage from './pages/TicketPage';
 import AdminPanel from './pages/AdminPanel';
