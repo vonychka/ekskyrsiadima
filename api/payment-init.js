@@ -85,7 +85,9 @@ export default async function handler(req, res) {
       OrderId: orderId,
       Description: description.substring(0, 250),
       PayType: 'O',
-      CustomerKey: customerKey || orderId
+      CustomerKey: customerKey || orderId,
+      Recurrent: 'N',
+      Language: 'ru'
     };
 
     console.log('Payment data for token:', paymentData);
