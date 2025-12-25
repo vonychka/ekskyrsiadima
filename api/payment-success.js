@@ -1,4 +1,13 @@
-import { sendTicketEmail, sendAdminNotification } from '../src/utils/emailService.js';
+// Временная заглушка - будем использовать Resend API
+const sendTicketEmail = async (data) => {
+  console.log('Отправка билета:', data);
+  return { success: true, message: 'Билет отправлен' };
+};
+
+const sendAdminNotification = async (data) => {
+  console.log('Уведомление администратору:', data);
+  return { success: true, message: 'Уведомление отправлено' };
+};
 
 export default async function handler(req, res) {
   try {
