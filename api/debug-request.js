@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       Amount: Math.round(amount * 100),
       OrderId: String(orderId),
       Description: String(description).substring(0, 250),
-      CustomerKey: String(customerKey || orderId),
+      CustomerKey: String(orderId), // Только OrderId, без email!
       PayType: 'O',
       Recurrent: 'N'
     };
