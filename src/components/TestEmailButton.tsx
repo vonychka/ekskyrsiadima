@@ -17,7 +17,7 @@ const TestEmailButton = () => {
     setResult(null);
 
     try {
-      console.log('=== ТЕСТ ОТПРАВКИ EMAIL ===');
+      console.log('=== ТЕСТ ОТПРАВКИ EMAIL ЧЕРЕЗ Web3Forms ===');
       
       const testData = {
         fullName: 'Тестовый Клиент',
@@ -30,32 +30,59 @@ const TestEmailButton = () => {
         selectedTariff: 'standard',
         finalPrice: 100,
         paymentMethod: 'ТЕСТОВЫЙ',
-        paymentId: 'test-' + Date.now()
+        paymentId: 'test-' + Date.now(),
+        access_key: '2fa79352-bf0c-4752-8a27-8e63f0c864d3'
       };
 
-      console.log('Отправляю тестовые данные:', testData);
+      console.log('Отправляю тестовые данные в Web3Forms:', testData);
 
-      const response = await fetch('https://ekskyrsiadima-jhin.vercel.app/api/payment-success', {
+      // Создаем FormData для Web3Forms
+      const formData = new FormData();
+      Object.keys(testData).forEach(key => {
+        formData.append(key, testData[key]);
+      });
+
+      // Добавляем HTML сообщение для email
+      const htmlMessage = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2c5282;">🎫 Тестовый билет на экскурсию</h2>
+          <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>ФИО:</strong> ${testData.fullName}</p>
+            <p><strong>Телефон:</strong> ${testData.phone}</p>
+            <p><strong>Email:</strong> ${testData.email}</p>
+            <p><strong>Экскурсия:</strong> ${testData.tourTitle}</p>
+            <p><strong>Дата:</strong> ${testData.tourDate}</p>
+            <p><strong>Время:</strong> ${testData.tourTime}</p>
+            <p><strong>Количество человек:</strong> ${testData.numberOfPeople}</p>
+            <p><strong>Тариф:</strong> ${testData.selectedTariff}</p>
+            <p><strong>Стоимость:</strong> ${testData.finalPrice} ₽</p>
+            <p><strong>Способ оплаты:</strong> ${testData.paymentMethod}</p>
+            <p><strong>ID платежа:</strong> ${testData.paymentId}</p>
+          </div>
+          <p style="color: #718096; font-size: 14px;">Это тестовое письмо для проверки отправки уведомлений.</p>
+        </div>
+      `;
+      
+      formData.append('message', htmlMessage);
+
+      const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(testData)
+        body: formData
       });
 
       const data = await response.json();
-      console.log('Ответ API:', data);
+      console.log('Ответ Web3Forms:', data);
 
-      if (response.ok) {
+      if (response.ok && data.success) {
         setResult({
           success: true,
-          message: '✅ Тестовые email отправлены!',
+          message: '✅ Тестовые email отправлены через Web3Forms!',
           details: data
         });
       } else {
         setResult({
           success: false,
-          message: '❌ Ошибка отправки',
+          message: '❌ Ошибка отправки через Web3Forms',
           details: data
         });
       }
