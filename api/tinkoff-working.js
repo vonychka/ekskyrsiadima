@@ -45,7 +45,10 @@ export default async function handler(req, res) {
       Description: cleanDescription.substring(0, 250),
       CustomerKey: String(orderId),
       PayType: 'O',
-      Recurrent: 'N'
+      Recurrent: 'N',
+      // Добавляем URL для возврата на страницу билета
+      SuccessURL: 'https://ekskyrsiadima.ru/ticket',
+      FailURL: 'https://ekskyrsiadima.ru/payment-error'
     };
 
     // Генерируем токен с правильным порядком

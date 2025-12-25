@@ -11,7 +11,26 @@ const TicketPage = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    
+    // Проверяем если пришли с успешной оплаты Тинькофф
+    const urlParams = new URLSearchParams(location.search);
+    const paymentId = urlParams.get('paymentId');
+    const success = urlParams.get('success');
+    
+    if (success === 'true' || paymentId) {
+      // Загружаем данные из localStorage если есть
+      const pendingData = localStorage.getItem('pendingTicketData');
+      if (pendingData) {
+        const data = JSON.parse(pendingData);
+        setFullName(data.fullName || '');
+        setPhone(data.phone || '');
+        setEmail(data.email || '');
+        setTicketGenerated(true);
+        // Очищаем после использования
+        localStorage.removeItem('pendingTicketData');
+      }
+    }
+  }, [location.search]);
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
