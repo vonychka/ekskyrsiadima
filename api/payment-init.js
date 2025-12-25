@@ -1,4 +1,4 @@
-// api/payment-init.js - Vercel serverless функция для Тинькофф API
+// api/payment-init.js - Упрощенная Vercel serverless функция для Тинькофф API
 import crypto from 'crypto';
 
 // Конфигурация Тинькофф
@@ -20,10 +20,8 @@ function generateTinkoffToken(params) {
       return acc;
     }, {});
 
-  // Создаем строку для подписи (значения в алфавитном порядке ключей)
+  // Создаем строку для подписи
   const stringToSign = Object.values(sortedParams).join('') + TINKOFF_CONFIG.PASSWORD;
-
-  console.log('String to sign:', stringToSign);
 
   return crypto
     .createHash('sha256')
@@ -31,12 +29,12 @@ function generateTinkoffToken(params) {
     .digest('hex');
 }
 
-// Основной handler для Vercel serverless функции
+// Основной handler
 export default async function handler(req, res) {
   try {
-    // Установка CORS headers для работы с ekskyrsiadima.ru
+    // CORS headers
     const origin = req.headers.origin;
-    const allowedOrigins = ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima-jhin.vercel.app', 'https://ekskyrsiadima-jhin.vercel.app'];
+    const allowedOrigins = ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima-jhin.vercel.app'];
     
     if (allowedOrigins.includes(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
@@ -44,58 +42,39 @@ export default async function handler(req, res) {
       res.setHeader('Access-Control-Allow-Origin', 'https://ekskyrsiadima.ru');
     }
     
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-    // Обработка OPTIONS запросов
     if (req.method === 'OPTIONS') {
       res.status(200).end();
       return;
     }
 
-    // Только POST запросы
     if (req.method !== 'POST') {
-      res.status(405).json({
-        error: 'METHOD_NOT_ALLOWED',
-        message: 'Only POST requests are allowed'
-      });
+      res.status(405).json({ error: 'Method not allowed' });
       return;
     }
 
-    // Получаем тело запроса
-    const body = req.body;
-    const { amount, orderId, description, email, phone, customerKey } = body;
+    const { amount, orderId, description, email, phone, customerKey } = req.body;
 
-        // Валидация
     if (!amount || !orderId || !description) {
-      res.status(400).json({
-        error: 'VALIDATION_ERROR',
-        message: 'Отсутствуют обязательные параметры: amount, orderId, description'
-      });
+      res.status(400).json({ error: 'Missing required parameters' });
       return;
     }
 
-    console.log('Received payment request:', { amount, orderId, description, email, phone, customerKey });
-
-    // Подготовка базовых данных для запроса
+    // Минимальные обязательные параметры
     const paymentData = {
       TerminalKey: TINKOFF_CONFIG.TERMINAL_KEY,
       Amount: Math.round(amount * 100),
       OrderId: orderId,
       Description: description.substring(0, 250),
-      PayType: 'O',
-      CustomerKey: customerKey || orderId,
-      Recurrent: 'N',
-      Language: 'ru'
+      CustomerKey: customerKey || orderId
     };
-
-    console.log('Payment data for token:', paymentData);
 
     // Генерируем токен
     const token = generateTinkoffToken(paymentData);
     
-    // Добавляем токен и остальные поля
+    // Финальные данные запроса
     const requestData = {
       ...paymentData,
       Token: token,
@@ -103,29 +82,27 @@ export default async function handler(req, res) {
       ...(phone && { Phone: phone.replace(/\D/g, '') })
     };
 
-    console.log('Final request data:', JSON.stringify(requestData, null, 2));
+    console.log('Request to Tinkoff:', JSON.stringify(requestData, null, 2));
 
-    // Отправляем запрос в Тинькофф с таймаутом
+    // Быстрый запрос с коротким таймаутом
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 секунд таймаут
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 секунд
 
     try {
-      const tinkoffResponse = await fetch(`${TINKOFF_CONFIG.API_URL}/Init`, {
+      const response = await fetch(`${TINKOFF_CONFIG.API_URL}/Init`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData),
         signal: controller.signal
       });
 
       clearTimeout(timeoutId);
-
-      const result = await tinkoffResponse.json();
+      
+      const result = await response.json();
       console.log('Tinkoff response:', JSON.stringify(result, null, 2));
 
-      if (!tinkoffResponse.ok) {
-        throw new Error(`Tinkoff API error: ${result.Message || tinkoffResponse.statusText}`);
+      if (!response.ok) {
+        throw new Error(result.Message || 'Tinkoff API error');
       }
 
       res.status(200).json(result);
@@ -133,16 +110,16 @@ export default async function handler(req, res) {
     } catch (fetchError) {
       clearTimeout(timeoutId);
       if (fetchError.name === 'AbortError') {
-        throw new Error('Таймаут запроса к Тинькофф API');
+        throw new Error('Request timeout');
       }
       throw fetchError;
     }
 
   } catch (error) {
-    console.error('Tinkoff payment error:', error);
+    console.error('Payment error:', error);
     res.status(500).json({
-      error: 'SERVER_ERROR',
-      message: error.message || 'Внутренняя ошибка сервера'
+      error: 'Payment failed',
+      message: error.message || 'Internal server error'
     });
   }
 }
