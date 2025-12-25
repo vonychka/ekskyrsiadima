@@ -1,5 +1,5 @@
 // api/payment-init.js - Vercel serverless функция для Тинькофф API
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 // Конфигурация Тинькофф
 const TINKOFF_CONFIG = {
@@ -33,8 +33,16 @@ function generateTinkoffToken(params) {
 
 // Основной handler для Vercel serverless функции
 export default async function handler(req, res) {
-  // Установка CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Установка CORS headers для работы с ekskyrsiadima.ru
+  const origin = req.headers.origin;
+  const allowedOrigins = ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima-jhin.vercel.app'];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://ekskyrsiadima.ru');
+  }
+  
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
