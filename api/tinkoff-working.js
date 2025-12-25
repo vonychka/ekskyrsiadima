@@ -24,8 +24,11 @@ function generateToken(paymentData) {
 
 export default async function handler(req, res) {
   try {
-    // CORS
-    res.setHeader('Access-Control-Allow-Origin', 'https://ekskyrsiadima.ru');
+    // CORS - динамический Origin в зависимости от домена
+    const origin = req.headers.origin;
+    if (origin === 'https://ekskyrsiadima.ru' || origin === 'https://cv91330.tw1.ru') {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
