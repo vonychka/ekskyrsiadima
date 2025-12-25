@@ -42,6 +42,17 @@ export default async function handler(req, res) {
     // Чистые данные
     const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
     
+    // Определяем домен для SuccessURL
+    const referer = req.headers.referer || '';
+    let successUrl = 'https://ekskyrsiadima.ru/ticket?success=true';
+    
+    if (referer.includes('cv91330.tw1.ru')) {
+      successUrl = 'https://cv91330.tw1.ru/ticket?success=true';
+    }
+    
+    console.log('Referer:', referer);
+    console.log('SuccessURL будет:', successUrl);
+    
     const paymentData = {
       TerminalKey: CONFIG.TERMINAL_KEY,
       Amount: Math.round(amount * 100),
@@ -51,7 +62,7 @@ export default async function handler(req, res) {
       PayType: 'O',
       Recurrent: 'N',
       // Добавляем URL для возврата на страницу билета с параметрами успеха
-      SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true',
+      SuccessURL: successUrl,
       FailURL: 'https://ekskyrsiadima.ru/payment-error'
     };
 
