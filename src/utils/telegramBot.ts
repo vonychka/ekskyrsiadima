@@ -5,7 +5,7 @@ export const sendToTelegram = async (bookingData: any) => {
     console.log('Данные для отправки:', bookingData);
 
     const botToken = '8209677930:AAFYQhWh_a4NvzRgnBjeJTO_Af5JkxWeauE';
-    const chatId = 'ВАШ_CHAT_ID'; // Нужно получить ваш chat_id
+    const chatId = '1183482279'; // Ваш chat_id
 
     const message = `
 🎫 НОВЫЙ ЗАКАЗ ЭКСКУРСИИ
