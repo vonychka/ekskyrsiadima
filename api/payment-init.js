@@ -1,5 +1,5 @@
 // api/payment-init.js - Vercel serverless функция для Тинькофф API
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 // Конфигурация Тинькофф
 const TINKOFF_CONFIG = {
