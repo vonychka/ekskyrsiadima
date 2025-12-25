@@ -8,20 +8,31 @@ const TINKOFF_CONFIG = {
   API_URL: 'https://securepay.tinkoff.ru/v2'
 };
 
-// Генерация токена для Тинькофф
+// Генерация токена для Тинькофф - ПРАВИЛЬНЫЙ АЛГОРИТМ
 function generateTinkoffToken(params) {
-  const { Token, Receipt, ...paramsToSign } = params;
+  // Берем ТОЛЬКО эти поля для токена
+  const tokenFields = {
+    Amount: params.Amount,
+    CustomerKey: params.CustomerKey,
+    Description: params.Description,
+    OrderId: params.OrderId,
+    PayType: params.PayType,
+    Recurrent: params.Recurrent,
+    TerminalKey: params.TerminalKey
+  };
   
-  // Сортируем по алфавиту и конвертируем в строки
-  const sortedParams = Object.entries(paramsToSign)
+  // Сортируем по алфавиту
+  const sortedFields = Object.entries(tokenFields)
     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     .reduce((acc, [key, value]) => {
       acc[key] = String(value ?? '');
       return acc;
     }, {});
 
-  // Создаем строку для подписи
-  const stringToSign = Object.values(sortedParams).join('') + TINKOFF_CONFIG.PASSWORD;
+  // Склеиваем значения и в КОНЦЕ добавляем пароль
+  const stringToSign = Object.values(sortedFields).join('') + TINKOFF_CONFIG.PASSWORD;
+
+  console.log('String to sign:', stringToSign);
 
   return crypto
     .createHash('sha256')
@@ -76,12 +87,27 @@ export default async function handler(req, res) {
     // Генерируем токен
     const token = generateTinkoffToken(paymentData);
     
+    // Создаем Receipt если есть email или phone
+    const receipt = (email || phone) ? {
+      Email: email,
+      Phone: phone ? phone.replace(/\D/g, '') : undefined,
+      Taxation: 'osn',
+      Items: [
+        {
+          Name: String(description).substring(0, 128),
+          Price: Math.round(amount * 100),
+          Quantity: 1,
+          Amount: Math.round(amount * 100),
+          Tax: 'none'
+        }
+      ]
+    } : undefined;
+    
     // Финальные данные запроса
     const requestData = {
       ...paymentData,
       Token: token,
-      ...(email && { Email: email }),
-      ...(phone && { Phone: phone.replace(/\D/g, '') })
+      ...(receipt && { Receipt: receipt })
     };
 
     console.log('Request to Tinkoff:', JSON.stringify(requestData, null, 2));
