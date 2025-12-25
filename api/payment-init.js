@@ -32,7 +32,7 @@ function generateTinkoffToken(params) {
 }
 
 // Основной handler для Vercel serverless функции
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     // Установка CORS headers для работы с ekskyrsiadima.ru
     const origin = req.headers.origin;
@@ -63,84 +63,69 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Парсим тело запроса
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
-
-    req.on('end', async () => {
-      try {
-        const { amount, orderId, description, email, phone, customerKey } = JSON.parse(body);
+    // Получаем тело запроса
+    const body = req.body;
+    const { amount, orderId, description, email, phone, customerKey } = body;
 
         // Валидация
-        if (!amount || !orderId || !description) {
-          res.status(400).json({
-            error: 'VALIDATION_ERROR',
-            message: 'Отсутствуют обязательные параметры: amount, orderId, description'
-          });
-          return;
-        }
+    if (!amount || !orderId || !description) {
+      res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'Отсутствуют обязательные параметры: amount, orderId, description'
+      });
+      return;
+    }
 
-        console.log('Received payment request:', { amount, orderId, description, email, phone, customerKey });
+    console.log('Received payment request:', { amount, orderId, description, email, phone, customerKey });
 
-        // Подготовка базовых данных для запроса
-        const paymentData = {
-          TerminalKey: TINKOFF_CONFIG.TERMINAL_KEY,
-          Amount: Math.round(amount * 100),
-          OrderId: orderId,
-          Description: description.substring(0, 250),
-          PayType: 'O',
-          CustomerKey: customerKey || orderId
-        };
+    // Подготовка базовых данных для запроса
+    const paymentData = {
+      TerminalKey: TINKOFF_CONFIG.TERMINAL_KEY,
+      Amount: Math.round(amount * 100),
+      OrderId: orderId,
+      Description: description.substring(0, 250),
+      PayType: 'O',
+      CustomerKey: customerKey || orderId
+    };
 
-        console.log('Payment data for token:', paymentData);
+    console.log('Payment data for token:', paymentData);
 
-        // Генерируем токен
-        const token = generateTinkoffToken(paymentData);
-        
-        // Добавляем токен и остальные поля
-        const requestData = {
-          ...paymentData,
-          Token: token,
-          ...(email && { Email: email }),
-          ...(phone && { Phone: phone.replace(/\D/g, '') })
-        };
+    // Генерируем токен
+    const token = generateTinkoffToken(paymentData);
+    
+    // Добавляем токен и остальные поля
+    const requestData = {
+      ...paymentData,
+      Token: token,
+      ...(email && { Email: email }),
+      ...(phone && { Phone: phone.replace(/\D/g, '') })
+    };
 
-        console.log('Final request data:', JSON.stringify(requestData, null, 2));
+    console.log('Final request data:', JSON.stringify(requestData, null, 2));
 
-        // Отправляем запрос в Тинькофф
-        const tinkoffResponse = await fetch(`${TINKOFF_CONFIG.API_URL}/Init`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestData)
-        });
-
-        const result = await tinkoffResponse.json();
-        console.log('Tinkoff response:', JSON.stringify(result, null, 2));
-
-        if (!tinkoffResponse.ok) {
-          throw new Error(`Tinkoff API error: ${result.Message || tinkoffResponse.statusText}`);
-        }
-
-        res.status(200).json(result);
-
-      } catch (error) {
-        console.error('Tinkoff payment error:', error);
-        res.status(500).json({
-          error: 'SERVER_ERROR',
-          message: error.message || 'Внутренняя ошибка сервера'
-        });
-      }
+    // Отправляем запрос в Тинькофф
+    const tinkoffResponse = await fetch(`${TINKOFF_CONFIG.API_URL}/Init`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
     });
 
+    const result = await tinkoffResponse.json();
+    console.log('Tinkoff response:', JSON.stringify(result, null, 2));
+
+    if (!tinkoffResponse.ok) {
+      throw new Error(`Tinkoff API error: ${result.Message || tinkoffResponse.statusText}`);
+    }
+
+    res.status(200).json(result);
+
   } catch (error) {
-    console.error('Request error:', error);
+    console.error('Tinkoff payment error:', error);
     res.status(500).json({
       error: 'SERVER_ERROR',
       message: error.message || 'Внутренняя ошибка сервера'
     });
   }
-};
+}
