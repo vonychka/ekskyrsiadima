@@ -20,15 +20,19 @@ export default async function handler(req, res) {
     // Показываем что пришло с клиента
     console.log('Тело запроса с клиента:', JSON.stringify(req.body, null, 2));
 
+    console.log('=== ВСЕ ПАРАМЕТРЫ С КЛИЕНТА ===');
+    console.log('req.body:', JSON.stringify(req.body, null, 2));
+    
     const { amount, orderId, description, email, phone, customerKey } = req.body;
     
-    console.log('Распарсенные параметры:');
-    console.log('- amount:', amount);
-    console.log('- orderId:', orderId);
-    console.log('- description:', description);
-    console.log('- email:', email);
-    console.log('- phone:', phone);
-    console.log('- customerKey:', customerKey);
+    console.log('ПОДРОБНО:');
+    console.log('- amount:', amount, '(тип:', typeof amount, ')');
+    console.log('- orderId:', orderId, '(тип:', typeof orderId, ')');
+    console.log('- description:', description, '(тип:', typeof description, ')');
+    console.log('- email:', email, '(тип:', typeof email, ')');
+    console.log('- phone:', phone, '(тип:', typeof phone, ')');
+    console.log('- customerKey:', customerKey, '(тип:', typeof customerKey, ')');
+    console.log('================================');
     
     // Формируем точные данные как в payment-simple
     const CONFIG = {
