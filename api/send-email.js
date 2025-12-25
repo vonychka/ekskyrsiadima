@@ -13,58 +13,65 @@ export default async function handler(req, res) {
       to, 
       subject, 
       htmlContent, 
-      type = 'notification' // 'ticket' или 'notification'
+      from_name = 'Экскурсии с Бояриным',
+      reply_to
     } = req.body;
 
-    console.log('Отправка email:', { to, subject, type });
+    console.log('Отправка email через EmailJS:', { to, subject });
 
-    // Используем Resend API (нужно будет добавить RESEND_API_KEY в environment variables)
-    const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_123456789'; // временный ключ
-    
-    // Временно используем заглушку для теста
-    if (!RESEND_API_KEY || RESEND_API_KEY === 're_123456789') {
-      console.log('Email заглушка - будет отправлен на:', to);
+    // EmailJS настройки
+    const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID || 'service_xxx';
+    const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID || 'template_xxx';
+    const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY || 'xxx';
+
+    // Если нет настроек - используем заглушку
+    if (EMAILJS_SERVICE_ID === 'service_xxx') {
+      console.log('EmailJS заглушка - будет отправлен на:', to);
       console.log('Тема:', subject);
-      console.log('Тип:', type);
       
       return res.status(200).json({
         success: true,
         message: 'Email отправлен (заглушка)',
         to,
-        subject,
-        type
+        subject
       });
     }
 
-    // Реальный запрос к Resend API
-    const response = await fetch('https://api.resend.com/emails', {
+    // Формируем данные для EmailJS
+    const emailData = {
+      service_id: EMAILJS_SERVICE_ID,
+      template_id: EMAILJS_TEMPLATE_ID,
+      user_id: EMAILJS_PUBLIC_KEY,
+      template_params: {
+        to_email: to,
+        subject: subject,
+        message: htmlContent,
+        from_name: from_name,
+        reply_to: reply_to || to
+      }
+    };
+
+    // Отправляем через EmailJS API
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: 'noreply@ekskyrsiadima.ru',
-        to: [to],
-        subject: subject,
-        html: htmlContent,
-      }),
+      body: JSON.stringify(emailData)
     });
 
-    const result = await response.json();
-
     if (response.ok) {
-      console.log('Email успешно отправлен:', result);
+      console.log('Email успешно отправлен через EmailJS');
       res.status(200).json({
         success: true,
-        message: 'Email отправлен успешно',
-        id: result.id
+        message: 'Email отправлен успешно'
       });
     } else {
-      console.error('Ошибка отправки email:', result);
+      const error = await response.text();
+      console.error('Ошибка EmailJS:', error);
       res.status(400).json({
         success: false,
-        message: result.message || 'Ошибка отправки email'
+        message: 'Ошибка отправки email: ' + error
       });
     }
 
