@@ -54,6 +54,49 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
 
       if (data.Success) {
         if (data.PaymentURL) {
+          // Сохраняем данные для отправки чека после редиректа
+          const paymentData = {
+            fullName: '',
+            phone,
+            email,
+            tourTitle: description,
+            tourDate: new Date().toLocaleDateString('ru-RU'),
+            tourTime: 'Не указано',
+            numberOfPeople: 1,
+            selectedTariff: 'standard',
+            finalPrice: amount,
+            paymentId: data.PaymentId,
+            paymentMethod: 'Тинькофф'
+          };
+          
+          // Сохраняем в localStorage для отправки после возврата с платежной страницы
+          localStorage.setItem('pendingTicketData', JSON.stringify(paymentData));
+          
+          // Сразу отправляем уведомление администратору о новой оплате
+          fetch('https://ekskyrsiadima-jhin.vercel.app/api/payment-success', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(paymentData)
+          }).catch(error => {
+            console.error('Ошибка отправки уведомления:', error);
+          });
+          
+          // Блокируем места после успешной инициации оплаты
+          const tourId = description.includes('tour-') ? description.split('tour-')[1]?.split('-')[0] : null;
+          if (tourId) {
+            fetch('https://ekskyrsiadima-jhin.vercel.app/api/update-booking', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                tourId: tourId,
+                numberOfPeople: 1,
+                action: 'book'
+              })
+            }).catch(error => {
+              console.error('Ошибка блокировки мест:', error);
+            });
+          }
+          
           window.location.href = data.PaymentURL;
           onSuccess?.(data.PaymentURL);
         } else {
