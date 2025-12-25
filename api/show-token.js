@@ -16,7 +16,15 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
+    console.log('=== ПОЛНАЯ ДИАГНОСТИКА ТОКЕНА ===');
+    console.log('req.body:', JSON.stringify(req.body, null, 2));
+
     const { amount, orderId, description } = req.body;
+    
+    console.log('Параметры:');
+    console.log('- amount:', amount, '(тип:', typeof amount, ')');
+    console.log('- orderId:', orderId, '(тип:', typeof orderId, ')');
+    console.log('- description:', description, '(тип:', typeof description, ')');
     
     // Данные для токена
     const paymentData = {
@@ -29,6 +37,8 @@ export default async function handler(req, res) {
       Recurrent: 'N'
     };
 
+    console.log('paymentData:', JSON.stringify(paymentData, null, 2));
+
     // Генерация токена
     const values = [
       paymentData.Amount,
@@ -40,8 +50,14 @@ export default async function handler(req, res) {
       paymentData.TerminalKey
     ];
     
+    console.log('values для токена:', values);
+    
     const stringToSign = values.join('') + CONFIG.PASSWORD;
     const token = crypto.createHash('sha256').update(stringToSign).digest('hex');
+
+    console.log('stringToSign:', stringToSign);
+    console.log('generatedToken:', token);
+    console.log('=== КОНЕЦ ДИАГНОСТИКИ ===');
 
     res.status(200).json({
       paymentData: paymentData,
@@ -57,6 +73,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
+    console.error('Ошибка в show-token:', error);
     res.status(500).json({ error: error.message });
   }
 }
