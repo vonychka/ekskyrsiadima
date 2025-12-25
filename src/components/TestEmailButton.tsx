@@ -38,8 +38,8 @@ const TestEmailButton = () => {
 
       // Создаем FormData для Web3Forms
       const formData = new FormData();
-      Object.keys(testData).forEach(key => {
-        formData.append(key, testData[key]);
+      Object.keys(testData).forEach((key) => {
+        formData.append(key, String(testData[key as keyof typeof testData]));
       });
 
       // Добавляем HTML сообщение для email
