@@ -87,18 +87,26 @@ const sendAdminNotification = async (data) => {
 export default async function handler(req, res) {
   try {
     console.log('=== PAYMENT SUCCESS API START ===');
+    console.log('Timestamp:', new Date().toISOString());
     console.log('Method:', req.method);
+    console.log('URL:', req.url);
     console.log('Headers:', JSON.stringify(req.headers, null, 2));
     console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('Query:', JSON.stringify(req.query, null, 2));
     
-    // CORS - разрешаем все origin для теста
+    // CORS - разрешаем все origin для отладки
+    console.log('Setting CORS headers...');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-HTTP-Method-Override, Accept, Origin, Cache-Control, X-File-Name');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    
+    console.log('CORS headers set successfully');
+    console.log('Response headers after CORS:', res.getHeaders());
 
     if (req.method === 'OPTIONS') {
-      console.log('OPTIONS request - returning 200');
+      console.log('OPTIONS request detected - returning 200');
       return res.status(200).end();
     }
 
