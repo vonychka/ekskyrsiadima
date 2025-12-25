@@ -64,6 +64,8 @@ export default async function handler(req, res) {
     if (phone) paymentData.Phone = phone.replace(/\D/g, '');
 
     console.log('Отправляем в Тинькофф:', JSON.stringify(paymentData, null, 2));
+    console.log('SuccessURL:', paymentData.SuccessURL);
+    console.log('FailURL:', paymentData.FailURL);
 
     // Запрос в Тинькофф
     const response = await fetch(`${CONFIG.API_URL}/Init`, {
