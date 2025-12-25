@@ -10,33 +10,22 @@ const TINKOFF_CONFIG = {
 
 // Генерация токена для Тинькофф - ПРАВИЛЬНЫЙ АЛГОРИТМ
 function generateTinkoffToken(params) {
-  // Берем ТОЛЬКО эти поля для токена
-  const tokenFields = {
-    Amount: params.Amount,
-    CustomerKey: params.CustomerKey,
-    Description: params.Description,
-    OrderId: params.OrderId,
-    PayType: params.PayType,
-    Recurrent: params.Recurrent,
-    TerminalKey: params.TerminalKey
-  };
-  
-  // Сортируем по алфавиту
-  const sortedFields = Object.entries(tokenFields)
-    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-    .reduce((acc, [key, value]) => {
-      acc[key] = String(value ?? '');
-      return acc;
-    }, {});
+  // Берем ТОЛЬКО эти поля для токена в алфавитном порядке
+  const tokenString = [
+    params.Amount,
+    params.CustomerKey,
+    params.Description,
+    params.OrderId,
+    params.PayType,
+    params.Recurrent,
+    params.TerminalKey
+  ].join('') + TINKOFF_CONFIG.PASSWORD;
 
-  // Склеиваем значения и в КОНЦЕ добавляем пароль
-  const stringToSign = Object.values(sortedFields).join('') + TINKOFF_CONFIG.PASSWORD;
-
-  console.log('String to sign:', stringToSign);
+  console.log('Token string:', tokenString);
 
   return crypto
     .createHash('sha256')
-    .update(stringToSign)
+    .update(tokenString)
     .digest('hex');
 }
 
