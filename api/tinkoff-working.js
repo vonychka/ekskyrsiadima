@@ -24,14 +24,18 @@ function generateToken(paymentData) {
 
 export default async function handler(req, res) {
   try {
-    // CORS - динамический Origin в зависимости от домена
+    // CORS - разрешаем оба домена
     const origin = req.headers.origin;
     console.log('Request Origin:', origin);
+    
+    // Разрешаем оба домена + временно все для тестов
     if (origin === 'https://ekskyrsiadima.ru' || origin === 'https://cv91330.tw1.ru') {
       res.setHeader('Access-Control-Allow-Origin', origin);
       console.log('CORS Origin set to:', origin);
     } else {
-      console.log('CORS Origin not allowed:', origin);
+      // Временно разрешаем все origins
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      console.log('CORS Origin set to * (temporary fix)');
     }
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
