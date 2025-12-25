@@ -33,7 +33,7 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-    const { amount, orderId, description, email, phone } = req.body;
+    const { amount, orderId, description, fullName, email, phone } = req.body;
     
     // Чистые данные
     const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
@@ -55,6 +55,7 @@ export default async function handler(req, res) {
     paymentData.Token = generateToken(paymentData);
 
     // Добавляем опциональные поля ПОСЛЕ токена
+    if (fullName) paymentData.Description = `${fullName} - ${paymentData.Description}`;
     if (email) paymentData.Email = email;
     if (phone) paymentData.Phone = phone.replace(/\D/g, '');
 

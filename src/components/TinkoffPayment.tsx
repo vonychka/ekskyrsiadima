@@ -41,6 +41,7 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
           amount,
           orderId,
           description,
+          fullName,
           email,
           phone,
           customerKey: email || orderId

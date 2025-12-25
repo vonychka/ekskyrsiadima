@@ -13,6 +13,7 @@ export interface TinkoffPaymentRequest {
   amount: number;
   orderId: string;
   description: string;
+  fullName?: string;
   email?: string;
   phone?: string;
   customerKey?: string;
