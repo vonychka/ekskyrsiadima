@@ -32,20 +32,28 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
     setError(null);
 
     try {
+      console.log('=== ОТПРАВКА В ТИНЬКОФФ ===');
+      console.log('Данные клиента:', { fullName, email, phone });
+      console.log('Данные платежа:', { amount, orderId, description });
+      
+      const requestData = {
+        amount,
+        orderId,
+        description,
+        fullName,
+        email,
+        phone,
+        customerKey: email || orderId
+      };
+      
+      console.log('Полный запрос в Тинькофф:', requestData);
+      
       const response = await fetch('https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-working', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          amount,
-          orderId,
-          description,
-          fullName,
-          email,
-          phone,
-          customerKey: email || orderId
-        }),
+        body: JSON.stringify(requestData),
       });
 
       const data = await response.json();

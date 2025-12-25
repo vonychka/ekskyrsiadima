@@ -35,6 +35,10 @@ export default async function handler(req, res) {
 
     const { amount, orderId, description, fullName, email, phone } = req.body;
     
+    console.log('=== ТИНЬКОФФ API ПОЛУЧИЛ ДАННЫЕ ===');
+    console.log('Данные клиента:', { fullName, email, phone });
+    console.log('Данные платежа:', { amount, orderId, description });
+    
     // Чистые данные
     const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
     
