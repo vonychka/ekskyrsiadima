@@ -14,16 +14,27 @@ const TicketPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     
+    console.log('=== TICKET PAGE useEffect ЗАПУЩЕН ===');
+    console.log('URL search:', location.search);
+    
     // Проверяем если пришли с успешной оплаты Тинькофф
     const urlParams = new URLSearchParams(location.search);
     const paymentId = urlParams.get('paymentId');
     const success = urlParams.get('success');
     
+    console.log('URL параметры:', { paymentId, success });
+    
     if (success === 'true' || paymentId) {
+      console.log('Обнаружена успешная оплата, загружаем данные...');
+      
       // Загружаем данные из localStorage если есть
       const pendingData = localStorage.getItem('pendingTicketData');
+      console.log('Данные в localStorage:', pendingData);
+      
       if (pendingData) {
         const data = JSON.parse(pendingData);
+        console.log('Распарсенные данные:', data);
+        
         setFullName(data.fullName || '');
         setPhone(data.phone || '');
         setEmail(data.email || '');
@@ -49,7 +60,11 @@ const TicketPage = () => {
         
         // Очищаем после использования
         localStorage.removeItem('pendingTicketData');
+      } else {
+        console.log('❌ Нет данных в localStorage!');
       }
+    } else {
+      console.log('❌ Не обнаружено успешной оплаты');
     }
   }, [location.search]);
 
