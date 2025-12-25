@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useToursContext } from '../context/ToursContext';
 import { CheckCircle, Download, Share2, Home } from 'lucide-react';
 import { sendPromoCodeEmail, sendTicketEmail } from '../utils/emailService';
+import { sendTicketEmailWeb3Forms } from '../utils/emailWeb3Forms';
 
 const TicketPage = () => {
   const location = useLocation();
@@ -26,6 +27,17 @@ const TicketPage = () => {
         setPhone(data.phone || '');
         setEmail(data.email || '');
         setTicketGenerated(true);
+        
+        // Отправляем билет на email через Web3Forms
+        const ticketData = {
+          ...data,
+          paymentId: paymentId || data.paymentId,
+          paymentMethod: 'Тинькофф'
+        };
+        
+        console.log('Отправка билета после успешной оплаты Тинькофф...');
+        sendTicketEmailWeb3Forms(ticketData);
+        
         // Очищаем после использования
         localStorage.removeItem('pendingTicketData');
       }
