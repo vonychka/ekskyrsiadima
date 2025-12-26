@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 
 const CONFIG = {
-  TERMINAL_KEY: '1766479140318',
+  TERMINAL_KEY: '1766479140318', // БОЕВОЙ ТЕРМИНАЛ - ОБНОВЛЕНО
   PASSWORD: 's9R^$NsmYPytIY#_',
   API_URL: 'https://securepay.tinkoff.ru/v2'
 };
