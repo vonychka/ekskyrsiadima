@@ -24,6 +24,28 @@ function generateToken(paymentData) {
 
 export default async function handler(req, res) {
   try {
+    console.log('=== ТЕСТ ЛОГИРОВАНИЯ ===');
+    console.log('Timestamp:', new Date().toISOString());
+    
+    // Тестовые данные для проверки логов
+    const testData = {
+      SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=test-123',
+      FailURL: 'https://ekskyrsiadima.ru/payment-error',
+      NotificationURL: 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-webhook'
+    };
+    
+    console.log('SuccessURL:', testData.SuccessURL);
+    console.log('FailURL:', testData.FailURL);
+    console.log('NotificationURL:', testData.NotificationURL);
+    
+    if (req.method === 'GET') {
+      console.log('GET запрос - тест логирования');
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Тест логирования работает',
+        data: testData
+      });
+    }
     // CORS - разрешаем оба домена
     const origin = req.headers.origin;
     console.log('Request Origin:', origin);
