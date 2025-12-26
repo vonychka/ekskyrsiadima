@@ -38,15 +38,15 @@ export const PaymentSelector: React.FC<PaymentSelectorProps> = ({
   return (
     <div className="payment-selector">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-4">Оплата через Т Пей</h3>
+        <h3 className="text-lg font-semibold mb-4">Оплата через T-Pay</h3>
         
         <div className="mb-6">
           <div className="p-4 border border-blue-500 bg-blue-50 rounded-lg">
             <div className="flex items-center gap-3">
               <CreditCard className="w-6 h-6 text-blue-600" />
               <div className="text-left">
-                <div className="font-medium">Т Банк</div>
-                <div className="text-sm text-gray-600">Банковские карты</div>
+                <div className="font-medium">T-Pay</div>
+                <div className="text-sm text-gray-600">Банковские карты и СБП</div>
               </div>
             </div>
           </div>

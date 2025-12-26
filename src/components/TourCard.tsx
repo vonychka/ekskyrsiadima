@@ -46,7 +46,14 @@ const TourCard: React.FC<TourCardProps> = ({ tour }) => {
         <img 
           src={tour.image} 
           alt={tour.title}
+          loading="lazy"
+          fetchpriority={tour.fetchpriority || 'auto'}
+          decoding="async"
           className="w-full h-64 object-cover transition-transform duration-300 hover:scale-105"
+          style={{ 
+            contentVisibility: 'auto',
+            containIntrinsicSize: '400px 256px'
+          }}
         />
         <div className="absolute top-4 left-4">
           <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">

@@ -144,7 +144,7 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
         ) : (
           <>
             <CreditCard className="w-5 h-5" />
-            Оплатить картой Тинькофф
+            Оплатить через T-Pay
           </>
         )}
       </button>

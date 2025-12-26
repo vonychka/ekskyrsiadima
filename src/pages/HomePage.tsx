@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useOptimizedTours } from '../hooks/useOptimizedTours';
 import TourCard from '../components/TourCard';
 import StaticReviewsSection from '../components/StaticReviewsSection';
+import SkeletonLoader from '../components/SkeletonLoader';
 import { MapPin, Award, Users, Clock } from 'lucide-react';
 import { getNearestTourSpots } from '../data/tours';
 import { Tour } from '../types';
@@ -111,41 +112,185 @@ const HomePage: React.FC = () => {
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center text-white -mt-12 md:-mt-8">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-white bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">Прогулка</span>
-              <span className="block text-yellow-300 text-4xl md:text-5xl lg:text-6xl mt-2 md:mt-3 font-medium">с Бояриным</span>
-              <span className="block text-blue-100 text-xl md:text-2xl lg:text-3xl mt-4 md:mt-5 font-normal tracking-wide">
-                <span className="inline-block transform transition-transform duration-300 hover:scale-105">эмоции и приключения</span>
-                <span className="block md:inline-block md:ml-3 mt-2 md:mt-0">
-                  <span className="bg-yellow-400 text-blue-900 px-4 py-2 rounded-full text-base md:text-lg font-medium">купи билет сейчас</span>
-                </span>
-              </span>
-            </h1>
+          <h1
+  className="
+    w-full
+    max-w-md
+    mx-auto
+    px-4
+    text-5xl
+    leading-tight
+    font-extrabold
+    mb-6
+    tracking-tight
+    md:px-0
+    md:max-w-none
+    md:text-6xl
+    lg:text-7xl
+  "
+>
+ <span
+  className="
+    block
+    text-white
+    bg-gradient-to-r from-white to-blue-100
+    bg-clip-text text-transparent
+    font-black
+    rotate-[-1deg]
+    inline-block
+  "
+>
+  Прогулка
+</span>
+
+<span
+  className="
+    block
+    text-yellow-300
+    text-20xl -mt-2
+    font-semibold
+    tracking-wide
+    rotate-[0.5deg]
+    inline-block
+    md:text-5xl
+    lg:text-60xl
+  "
+>
+  с Бояриным
+</span>
+
+  <span
+    className="
+      block
+      text-blue-100
+      text-lg
+      mt-0
+      font-normal
+      tracking-wide
+      md:text-2xl
+      lg:text-3xl
+    "
+  >
+    <span
+      className="
+        block
+        italic
+        rotate-[-0.5deg]
+        transition-transform duration-300
+        hover:scale-105
+      "
+    >
+      эмоции и приключения
+    </span>
+
+    <span className="block mt-0">
+      <span
+        className="
+          inline-block
+          bg-yellow-400
+          text-blue-900
+          px-6 py-3
+          rounded-full
+          text-base
+          font-semibold
+          tracking-wide
+          shadow-md
+          rotate-[1deg]
+          md:text-lg
+        "
+      >
+        купи билет сейчас
+      </span>
+    </span>
+  </span>
+</h1>
+
+
+
             
-            <div className="flex flex-col items-center gap-6 mt-16 md:mt-20 mb-2">
-              <button 
-                onClick={scrollToTours}
-                className="bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-black px-20 md:px-16 py-5 md:py-5 rounded-2xl text-xl md:text-2xl font-extrabold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl animate-bounce"
-              >
-                Наши прогулки
-              </button>
-              
-              <div className="flex flex-col gap-3 w-full max-w-xs">
-                <button 
-                  onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="bg-transparent border border-white border-opacity-30 text-white text-opacity-80 w-full px-6 md:px-8 py-3 md:py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 hover:bg-white hover:bg-opacity-10 hover:text-opacity-100 hover:border-opacity-50"
-                >
-                  Отзывы
-                </button>
-                
-                <button 
-                  onClick={scrollToContacts}
-                  className="bg-transparent border border-white border-opacity-30 text-white text-opacity-80 w-full px-6 md:px-8 py-3 md:py-4 rounded-xl text-base md:text-lg font-medium transition-all duration-300 hover:bg-white hover:bg-opacity-10 hover:text-opacity-100 hover:border-opacity-50"
-                >
-                  Контакты
-                </button>
-              </div>
-            </div>
+            <div className="flex flex-col items-center gap-4 mt-12 md:mt-20 mb-2 w-full">
+  {/* Primary CTA */}
+  <button
+  onClick={scrollToTours}
+  className="
+    group relative
+    w-full max-w-sm
+    bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-400
+    text-black
+    py-4 px-6
+    rounded-2xl
+    text-base sm:text-lg
+    font-bold
+    tracking-wide
+    shadow-lg hover:shadow-xl
+    transition-all duration-300
+    active:scale-[0.98]
+    focus:outline-none
+    transform hover:scale-105
+    border-2 border-yellow-300
+  "
+>
+  <span className="relative z-10">Наши прогулки</span>
+  <div className="absolute inset-0 bg-gradient-to-r from-yellow-300 to-orange-300 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+  <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+</button>
+{/* Secondary actions */}
+<div className="flex flex-col gap-3 w-full max-w-sm">
+  <button
+    onClick={() =>
+      document
+        .getElementById('reviews-section')
+        ?.scrollIntoView({ behavior: 'smooth' })
+    }
+    className="
+      group relative
+      w-full
+      py-3 px-6
+      rounded-2xl
+      text-sm sm:text-base
+      font-medium
+      text-white
+      backdrop-blur-sm
+      bg-white/10
+      border border-white/20
+      shadow-md hover:shadow-lg
+      transition-all duration-300
+      active:scale-[0.98]
+      hover:bg-white/20
+      hover:border-white/40
+      transform hover:scale-105
+    "
+  >
+    <span className="relative z-10">Отзывы</span>
+    <div className="absolute inset-0 bg-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+  </button>
+  <button
+    onClick={scrollToContacts}
+    className="
+      group relative
+      w-full
+      py-3 px-6
+      rounded-2xl
+      text-sm sm:text-base
+      font-medium
+      text-white
+      backdrop-blur-sm
+      bg-white/10
+      border border-white/20
+      shadow-md hover:shadow-lg
+      transition-all duration-300
+      active:scale-[0.98]
+      hover:bg-white/20
+      hover:border-white/40
+      transform hover:scale-105
+    "
+  >
+    <span className="relative z-10">Контакты</span>
+    <div className="absolute inset-0 bg-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+  </button>
+  </div>
+</div>
+
           </div>
         </div>
       </section>
@@ -164,9 +309,7 @@ const HomePage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {loading ? (
-              <div className="text-center text-gray-600">
-                Загрузка...
-              </div>
+              <SkeletonLoader count={3} />
             ) : (
               toursWithSpots.map((tour) => (
                 <TourCard key={tour.id} tour={tour} />
