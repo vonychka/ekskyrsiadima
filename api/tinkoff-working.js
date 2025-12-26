@@ -46,6 +46,7 @@ export default async function handler(req, res) {
         data: testData
       });
     }
+
     // CORS - разрешаем оба домена
     const origin = req.headers.origin;
     console.log('Request Origin:', origin);
@@ -71,6 +72,10 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    console.log('=== ЗАПРОС НА ОПЛАТУ ТИНЬКОФФ ===');
+    console.log('Body:', req.body);
+
+    // Получаем данные только для POST запроса
     const { amount, description, orderId, fullName, email, phone } = req.body;
     
     console.log('=== ТИНЬКОФФ API ПОЛУЧИЛ ДАННЫЕ ===');
