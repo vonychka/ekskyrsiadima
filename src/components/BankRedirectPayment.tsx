@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import YandexPayment from './YandexPayment';
 
 interface BankRedirectPaymentProps {
