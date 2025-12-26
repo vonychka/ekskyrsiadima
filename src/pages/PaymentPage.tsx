@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToursContext } from '../context/ToursContext';
 import BankRedirectPayment from '../components/BankRedirectPayment';
-import { TinkoffPayment } from '../components/TinkoffPayment';
-import { AlertCircle, CreditCard } from 'lucide-react';
+import { PaymentSelector } from '../components/PaymentSelector';
+import { AlertCircle } from 'lucide-react';
 
 const PaymentPage = () => {
   const location = useLocation();
@@ -224,56 +224,19 @@ const PaymentPage = () => {
 
         {isUserDataComplete() && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">Способ оплаты</h2>
-            
-            <div className="space-y-4">
-              {/* Тинькофф оплата */}
-              <div className="w-full">
-                <div className="p-4 border-2 border-blue-200 bg-blue-50 rounded-lg">
-                  <div className="flex flex-col items-center space-y-3 mb-4">
-                    <CreditCard className="w-8 h-8 text-blue-600" />
-                    <div className="text-center">
-                      <h3 className="font-semibold text-lg text-blue-900">Тинькофф Банк</h3>
-                      <p className="text-sm text-blue-700">Оплата через безопасный шлюз Тинькофф</p>
-                    </div>
-                  </div>
-                  <TinkoffPayment
-                    amount={finalPrice}
-                    orderId={`tour-${tourId}-${Date.now()}`}
-                    description={`Оплата экскурсии: ${currentTour.title}`}
-                    fullName={fullName}
-                    email={email}
-                    phone={phone}
-                    onSuccess={(paymentUrl) => {
-                      console.log('Redirecting to Tinkoff payment:', paymentUrl);
-                    }}
-                    onError={(error) => {
-                      console.error('Tinkoff payment error:', error);
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Разделитель */}
-              <div className="flex items-center space-x-4">
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <span className="text-sm text-gray-500">или</span>
-                <div className="flex-1 h-px bg-gray-300"></div>
-              </div>
-
-              {/* Другие способы оплаты */}
-              <div className="w-full">
-                <div className="p-6 border-2 border-gray-300 bg-gray-50 text-center rounded-lg">
-                  <div className="flex flex-col items-center space-y-3">
-                    <CreditCard className="w-8 h-8 text-gray-600" />
-                    <div>
-                      <h3 className="font-semibold text-lg">Другие способы оплаты</h3>
-                      <p className="text-sm text-gray-600">Банковские карты и электронные кошельки</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <PaymentSelector
+              amount={finalPrice}
+              description={`Оплата экскурсии: ${currentTour.title}`}
+              fullName={fullName}
+              email={email}
+              phone={phone}
+              onPaymentSuccess={(paymentId) => {
+                console.log('Payment successful:', paymentId);
+              }}
+              onPaymentError={(error) => {
+                console.error('Payment error:', error);
+              }}
+            />
           </div>
         )}
 
