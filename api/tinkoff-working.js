@@ -105,6 +105,34 @@ export default async function handler(req, res) {
       });
     }
 
+    // Если POST запрос с параметром yandex=true - Яндекс Пей
+    if (req.method === 'POST' && req.body && req.body.yandex === true) {
+      const { amount, description, orderId, fullName, email, phone } = req.body;
+      
+      console.log('=== ЯНДЕКС ПЕЙ ЗАПРОС ===');
+      console.log('Данные:', { amount, description, orderId, fullName, email, phone });
+
+      const referer = req.headers.referer || 'https://ekskyrsiadima.ru';
+      let successUrl = 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId || 'yandex-' + Date.now());
+      
+      if (referer.includes('cv91330.tw1.ru')) {
+        successUrl = 'https://cv91330.tw1.ru/ticket?success=true&paymentId=' + String(orderId || 'yandex-' + Date.now());
+      }
+
+      const mockPaymentUrl = 'https://pay.yandex.ru/checkout?mock=true&orderId=' + String(orderId || 'yandex-' + Date.now());
+
+      console.log('SuccessURL:', successUrl);
+      console.log('Mock Payment URL:', mockPaymentUrl);
+
+      return res.status(200).json({
+        success: true,
+        paymentUrl: mockPaymentUrl,
+        paymentId: 'yandex-mock-' + Date.now(),
+        orderId: orderId,
+        message: 'Платеж Яндекс Пей создан (тестовый режим)'
+      });
+    }
+
     // CORS - разрешаем оба домена
     const origin = req.headers.origin;
     console.log('Request Origin:', origin);
