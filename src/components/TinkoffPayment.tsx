@@ -39,14 +39,34 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
       console.log('Данные клиента:', { fullName, email, phone });
       console.log('Данные платежа:', { amount, orderId, description });
       
+      // Валидация данных перед отправкой
+      if (!amount || amount <= 0) {
+        throw new Error('Сумма платежа должна быть больше 0');
+      }
+      if (!orderId) {
+        throw new Error('OrderId обязателен');
+      }
+      if (!description) {
+        throw new Error('Описание обязательно');
+      }
+      if (!fullName || fullName.trim() === '') {
+        throw new Error('Имя клиента обязательно');
+      }
+      if (!email || email.trim() === '') {
+        throw new Error('Email обязателен');
+      }
+      if (!phone || phone.trim() === '') {
+        throw new Error('Телефон обязателен');
+      }
+      
       const requestData = {
-        amount,
-        orderId,
-        description,
-        fullName,
-        email,
-        phone,
-        customerKey: email || orderId
+        amount: Number(amount),
+        orderId: String(orderId),
+        description: String(description).trim(),
+        fullName: String(fullName).trim(),
+        email: String(email).trim(),
+        phone: String(phone).trim(),
+        customerKey: String(email).trim() || String(orderId)
       };
       
       console.log('Полный запрос в Тинькофф:', requestData);
