@@ -24,6 +24,15 @@ function generateToken(paymentData) {
 
 export default async function handler(req, res) {
   try {
+    // Парсим JSON тело для Vercel
+    if (req.method === 'POST') {
+      try {
+        req.body = JSON.parse(req.body);
+      } catch (e) {
+        console.log('JSON parse error:', e);
+      }
+    }
+    
     console.log('=== ТЕСТ ЛОГИРОВАНИЯ ===');
     console.log('Timestamp:', new Date().toISOString());
     
