@@ -1,6 +1,18 @@
 // src/pages/api/payment/init.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
+
+// Типы для API запросов
+interface NextApiRequest {
+  body: any;
+  method: string;
+  headers: any;
+}
+
+interface NextApiResponse {
+  status: (code: number) => NextApiResponse;
+  json: (data: any) => NextApiResponse;
+  setHeader: (name: string, value: string) => NextApiResponse;
+}
 
 // В продакшене используйте переменные окружения!
 const TINKOFF_TERMINAL_KEY = process.env.TINKOFF_TERMINAL_KEY || '1766479140318';
