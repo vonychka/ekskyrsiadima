@@ -217,6 +217,9 @@ export default async function handler(req, res) {
       CustomerKey: String(orderId),
       PayType: 'O',
       Recurrent: 'N',
+      // Добавляем Email и Phone ДО генерации токена
+      Email: email,
+      Phone: phone ? phone.replace(/\D/g, '') : undefined,
       // Добавляем URL для возврата на страницу билета с параметрами успеха
       SuccessURL: successUrl,
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
@@ -226,13 +229,11 @@ export default async function handler(req, res) {
       Receipt: receipt
     };
 
+    // Добавляем fullName в описание ПОСЛЕ токена (не влияет на токен)
+    if (fullName) paymentData.Description = `${fullName} - ${paymentData.Description}`;
+
     // Генерируем токен с правильным порядком
     paymentData.Token = generateToken(paymentData);
-
-    // Добавляем опциональные поля ПОСЛЕ токена
-    if (fullName) paymentData.Description = `${fullName} - ${paymentData.Description}`;
-    if (email) paymentData.Email = email;
-    if (phone) paymentData.Phone = phone.replace(/\D/g, '');
 
     console.log('Отправляем в Тинькофф:', JSON.stringify(paymentData, null, 2));
     console.log('SuccessURL:', paymentData.SuccessURL);
