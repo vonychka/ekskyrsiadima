@@ -55,35 +55,9 @@ const YandexPayment: React.FC<YandexPaymentProps> = ({
     }
   };
 
-  return (
-    <div className="w-full">
-      <button
-        onClick={initPayment}
-        disabled={isLoading}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-      >
-        {isLoading ? (
-          <>
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            <span>Обработка...</span>
-          </>
-        ) : (
-          <>
-            <span>Оплатить</span>
-          </>
-        )}
-      </button>
-      
-      {error && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-red-500" />
-            <span className="text-sm text-red-700">{error}</span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  
+    
+
 };
 
 export default YandexPayment;

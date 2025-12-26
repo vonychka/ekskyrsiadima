@@ -38,7 +38,7 @@ export const PaymentSelector: React.FC<PaymentSelectorProps> = ({
   return (
     <div className="payment-selector">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-4">Выберите способ оплаты</h3>
+        <h3 className="text-lg font-semibold mb-4">Оплата через Т Пей</h3>
         
         <div className="mb-6">
           <div className="p-4 border border-blue-500 bg-blue-50 rounded-lg">
