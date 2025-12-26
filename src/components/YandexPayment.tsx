@@ -69,21 +69,10 @@ const YandexPayment: React.FC<YandexPaymentProps> = ({
           </>
         ) : (
           <>
-            <span>Оплатить через ЮKassa</span>
+            <span>Оплатить</span>
           </>
         )}
       </button>
-      
-      <div className="mt-4 text-center">
-        <p className="text-xs text-gray-500">
-          Безопасная оплата через ЮKassa
-        </p>
-        <div className="flex items-center justify-center space-x-2 mt-2">
-          <span className="text-gray-400 text-xs">VISA</span>
-          <span className="text-gray-400 text-xs">MasterCard</span>
-          <span className="text-gray-400 text-xs">МИР</span>
-        </div>
-      </div>
       
       {error && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
