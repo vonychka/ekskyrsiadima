@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 const TINKOFF_API = 'https://securepay.tinkoff.ru/v2/Init';
-const TERMINAL_KEY = process.env.TINKOFF_TERMINAL_KEY || '1766479140271DEMO';
+const TERMINAL_KEY = process.env.TINKOFF_TERMINAL_KEY || '1766479140318';
 const SECRET_KEY = process.env.TINKOFF_SECRET_KEY || '';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 

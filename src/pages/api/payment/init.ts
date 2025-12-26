@@ -3,8 +3,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 
 // В продакшене используйте переменные окружения!
-const TINKOFF_TERMINAL_KEY = process.env.TINKOFF_TERMINAL_KEY || '1766479140271DEMO';
-const TINKOFF_PASSWORD = process.env.TINKOFF_PASSWORD || '!BuR2jlFEFF25Hh5';
+const TINKOFF_TERMINAL_KEY = process.env.TINKOFF_TERMINAL_KEY || '1766479140318';
+const TINKOFF_PASSWORD = process.env.TINKOFF_PASSWORD || 's9R^$NsmYPytIY#_';
 
 interface TinkoffPaymentRequest {
   amount: number;

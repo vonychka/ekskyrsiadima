@@ -1,12 +1,13 @@
 // server.js - Продакшн версия API сервера для хостинга
 const http = require('http');
+
 const crypto = require('crypto');
 const url = require('url');
 
 // Конфигурация Тинькофф
 const TINKOFF_CONFIG = {
-  TERMINAL_KEY: process.env.TINKOFF_TERMINAL_KEY || '1766479140271DEMO',
-  PASSWORD: process.env.TINKOFF_PASSWORD || '!BuR2jlFEFF25Hh5',
+  TERMINAL_KEY: process.env.TINKOFF_TERMINAL_KEY || '1766479140318',
+  PASSWORD: process.env.TINKOFF_PASSWORD || 's9R^$NsmYPytIY#_',
   API_URL: 'https://securepay.tinkoff.ru/v2'
 };
 
