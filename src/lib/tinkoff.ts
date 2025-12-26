@@ -3,8 +3,8 @@ import crypto from 'crypto';
 
 // Конфигурация (в продакшене используйте переменные окружения)
 export const TINKOFF_CONFIG = {
-  TERMINAL_KEY: process.env.TINKOFF_TERMINAL_KEY || '1766479140271DEMO',
-  PASSWORD: process.env.TINKOFF_PASSWORD || '!BuR2jlFEFF25Hh5',
+  TERMINAL_KEY: process.env.TINKOFF_TERMINAL_KEY || '1766479140318',
+  PASSWORD: process.env.TINKOFF_PASSWORD || 's9R^$NsmYPytIY#_',
   API_URL: 'https://securepay.tinkoff.ru/v2'
 };
 
