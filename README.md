@@ -1,2 +1,3 @@
 # Cache bust пятница, 26 декабря 2025 г. 20:02:03 (MSK)
 # Force redeploy пятница, 26 декабря 2025 г. 21:13:01 (MSK)
+# ekskyrsiadima-payment-api
