@@ -47,6 +47,64 @@ export default async function handler(req, res) {
       });
     }
 
+    // Если POST запрос с параметром test=true - возвращаем доказательство
+    if (req.method === 'POST' && req.body && req.body.test === true) {
+      const { amount, description, orderId, fullName, email, phone } = req.body;
+      
+      const cleanDescription = String(description || 'Экскурсия').replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
+      const referer = req.headers.referer || 'https://ekskyrsiadima.ru';
+      let successUrl = 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId || 'test-' + Date.now());
+      
+      if (referer.includes('cv91330.tw1.ru')) {
+        successUrl = 'https://cv91330.tw1.ru/ticket?success=true&paymentId=' + String(orderId || 'test-' + Date.now());
+      }
+
+      const receipt = {
+        Email: email || 'test@example.com',
+        Phone: phone || '+79991234567',
+        EmailCompany: 'sokovdima3@gmail.com',
+        TaxationSystem: 'USNIncome',
+        Items: [{
+          Name: cleanDescription.substring(0, 128),
+          Price: Math.round((amount || 1000) * 100),
+          Quantity: 1,
+          Amount: Math.round((amount || 1000) * 100),
+          Tax: 'none',
+          PaymentMethod: 'full_prepayment',
+          PaymentObject: 'service'
+        }]
+      };
+
+      const paymentData = {
+        TerminalKey: '1766479140271DEMO',
+        Amount: Math.round((amount || 1000) * 100),
+        OrderId: String(orderId || 'test-' + Date.now()),
+        Description: cleanDescription.substring(0, 250),
+        CustomerKey: String(orderId || 'test-' + Date.now()),
+        PayType: 'O',
+        Recurrent: 'N',
+        SuccessURL: successUrl,
+        FailURL: 'https://ekskyrsiadima.ru/payment-error',
+        NotificationURL: 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-webhook',
+        Receipt: receipt
+      };
+
+      return res.status(200).json({
+        success: true,
+        message: 'ДОКАЗАТЕЛЬСТВО ДЛЯ ПОДДЕРЖКИ ТИНЬКОФФ',
+        evidence: {
+          timestamp: new Date().toISOString(),
+          original_request: req.body,
+          tinkoff_request: paymentData,
+          success_url_details: {
+            successUrl: successUrl,
+            referer: referer,
+            orderId: orderId
+          }
+        }
+      });
+    }
+
     // CORS - разрешаем оба домена
     const origin = req.headers.origin;
     console.log('Request Origin:', origin);
