@@ -82,7 +82,7 @@ export default async function handler(req, res) {
         Email: email || 'test@example.com',
         Phone: phone || '+79991234567',
         EmailCompany: 'sokovdima3@gmail.com',
-        TaxationSystem: 'USNIncome',
+        TaxationSystem: 'osn',
         Items: [{
           Name: cleanDescription.substring(0, 128),
           Price: Math.round((amount || 1000) * 100),
@@ -212,7 +212,7 @@ export default async function handler(req, res) {
       Email: email,
       Phone: phone,
       EmailCompany: 'sokovdima3@gmail.com',
-      TaxationSystem: 'USNIncome', // УСН Доход
+      TaxationSystem: 'osn', // УСН Доход
       Items: [
         {
           Name: cleanDescription.substring(0, 128), // Название экскурсии
