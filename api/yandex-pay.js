@@ -4,7 +4,7 @@ import { createHmac } from 'crypto';
 const YANDEX_CONFIG = {
   MERCHANT_API_KEY: '19c1e757-cf1e-4789-b576-48c30474c6d8',
   API_URL: 'https://pay.yandex.ru/api/merchant/v1',
-  CALLBACK_URL: 'https://ekskyrsiadima-jhin.vercel.app/api/yandex-webhook',
+  CALLBACK_URL: 'https://ekskyrsiadima.ru/payment',
   SUCCESS_URL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=',
   FAIL_URL: 'https://ekskyrsiadima.ru/payment-error'
 };
