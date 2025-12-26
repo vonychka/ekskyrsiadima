@@ -6,20 +6,24 @@ const CONFIG = {
   API_URL: 'https://securepay.tinkoff.ru/v2'
 };
 
-function generateToken(paymentData) {
-  // ПРАВИЛЬНЫЙ ПОРЯДОК с паролем ПОСЛЕ OrderId
-  const tokenString = [
-    paymentData.Amount,
-    paymentData.CustomerKey,
-    paymentData.Description,
-    paymentData.OrderId,
-    CONFIG.PASSWORD, // ПАРОЛЬ СЮДА!
-    paymentData.PayType,
-    paymentData.Recurrent,
-    paymentData.TerminalKey
-  ].join('');
-  
-  return createHash('sha256').update(tokenString).digest('hex');
+function generateToken(data) {
+  const copy = { ...data };
+  delete copy.Token;
+
+  const tokenString = Object.keys({
+    ...copy,
+    Password: CONFIG.PASSWORD
+  })
+    .sort()
+    .map(key => {
+      if (key === 'Password') return CONFIG.PASSWORD;
+      return copy[key];
+    })
+    .join('');
+
+  return createHash('sha256')
+    .update(tokenString)
+    .digest('hex');
 }
 
 export default async function handler(req, res) {
@@ -83,6 +87,7 @@ export default async function handler(req, res) {
         Phone: phone || '+79991234567',
         EmailCompany: 'sokovdima3@gmail.com',
         Taxation: 'usn',
+        FfdVersion: '1.05',
         Items: [{
           Name: cleanDescription.substring(0, 128),
           Price: Math.round((amount || 1000) * 100),
@@ -213,6 +218,7 @@ export default async function handler(req, res) {
       Phone: phone,
       EmailCompany: 'sokovdima3@gmail.com',
       Taxation: 'usn', // УСН Доход
+      FfdVersion: '1.05',
       Items: [
         {
           Name: cleanDescription.substring(0, 128), // Название экскурсии
