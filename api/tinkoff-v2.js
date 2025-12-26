@@ -24,15 +24,10 @@ function generateToken(paymentData) {
 
 export default async function handler(req, res) {
   try {
-    // CORS заголовки
-    const origin = req.headers.origin;
-    if (origin === 'https://ekskyrsiadima.ru' || origin === 'https://cv91330.tw1.ru') {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-    } else {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-    }
+    // CORS заголовки - ДО ВСЕГО ОСТАЛЬНОГО
+    res.setHeader('Access-Control-Allow-Origin', 'https://ekskyrsiadima.ru');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') {
       return res.status(200).end();
