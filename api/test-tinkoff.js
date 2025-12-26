@@ -14,11 +14,11 @@ function generateTinkoffToken(params) {
     params.OrderId,          // test-123
     params.PayType,          // O
     params.Recurrent,        // N
-    params.TerminalKey       // 1766479140271DEMO
-  ].join('') + TINKOFF_CONFIG.PASSWORD; // !BuR2jlFEFF25Hh5
+    params.TerminalKey       // 1766479140318
+  ].join('') + TINKOFF_CONFIG.PASSWORD; // s9R^$NsmYPytIY#_
 
   console.log('Token string:', tokenString);
-  console.log('Expected: 1000test-123Тестовый платежtest-123ON1766479140271DEMO!BuR2jlFEFF25Hh5');
+  console.log('Expected: 1000test-123Тестовый платежtest-123ON1766479140318s9R^$NsmYPytIY#_');
 
   return crypto.createHash('sha256').update(tokenString).digest('hex');
 }
