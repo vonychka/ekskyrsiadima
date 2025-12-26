@@ -24,12 +24,20 @@ function generateToken(paymentData) {
 
 export default async function handler(req, res) {
   try {
+    console.log('=== REQUEST DEBUG ===');
+    console.log('Method:', req.method);
+    console.log('Headers:', req.headers);
+    console.log('Raw body type:', typeof req.body);
+    console.log('Raw body:', req.body);
+    
     // Парсим JSON тело для Vercel
-    if (req.method === 'POST') {
+    if (req.method === 'POST' && typeof req.body === 'string') {
       try {
         req.body = JSON.parse(req.body);
+        console.log('Parsed body:', req.body);
       } catch (e) {
         console.log('JSON parse error:', e);
+        return res.status(400).json({ error: 'Invalid JSON body' });
       }
     }
     
