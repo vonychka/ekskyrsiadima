@@ -75,6 +75,12 @@ export default async function handler(req, res) {
     console.log('=== ЗАПРОС НА ОПЛАТУ ТИНЬКОФФ ===');
     console.log('Body:', req.body);
 
+    // Проверяем что body существует
+    if (!req.body) {
+      console.log('Body отсутствует');
+      return res.status(400).json({ error: 'Request body is required' });
+    }
+
     // Получаем данные только для POST запроса
     const { amount, description, orderId, fullName, email, phone } = req.body;
     
