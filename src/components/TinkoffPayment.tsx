@@ -71,7 +71,7 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
       
       console.log('Полный запрос в Тинькофф:', requestData);
       
-      const response = await fetch('https://ekskyrsiadima.ru/api/payment-init', {
+      const response = await fetch('https://ekskyrsiadima-api-final.vercel.app/api/tinkoff-v2', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
