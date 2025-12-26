@@ -31,13 +31,12 @@ export const YandexPay: React.FC<YandexPayProps> = ({
     try {
       const orderId = `yandex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      const response = await fetch('/api/tinkoff-working', {
+      const response = await fetch('/api/yandex-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          yandex: true, // Используем флаг для Яндекс Пей
           amount,
           description,
           orderId,
