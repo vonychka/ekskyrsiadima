@@ -66,7 +66,12 @@ export default async function handler(req, res) {
       return res.status(200).end();
     }
 
-    const { amount, orderId, description, fullName, email, phone } = req.body;
+    if (req.method !== 'POST') {
+      console.log('Неверный метод:', req.method);
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { amount, description, orderId, fullName, email, phone } = req.body;
     
     console.log('=== ТИНЬКОФФ API ПОЛУЧИЛ ДАННЫЕ ===');
     console.log('Данные клиента:', { fullName, email, phone });
