@@ -1,8 +1,8 @@
 import { createHash } from 'crypto';
 
 const CONFIG = {
-  TERMINAL_KEY: '1766479140271DEMO',
-  PASSWORD: '!BuR2jlFEFF25Hh5',
+  TERMINAL_KEY: '1766479140318',
+  PASSWORD: 's9R^$NsmYPytIY#_',
   API_URL: 'https://securepay.tinkoff.ru/v2'
 };
 
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
       };
 
       const paymentData = {
-        TerminalKey: '1766479140271DEMO',
+        TerminalKey: '1766479140318',
         Amount: Math.round((amount || 1000) * 100),
         OrderId: String(orderId || 'test-' + Date.now()),
         Description: cleanDescription.substring(0, 250),
