@@ -24,22 +24,35 @@ function generateToken(paymentData) {
 
 export default async function handler(req, res) {
   try {
-    console.log('=== REQUEST DEBUG ===');
-    console.log('Method:', req.method);
-    console.log('Headers:', req.headers);
-    console.log('Raw body type:', typeof req.body);
-    console.log('Raw body:', req.body);
-    
+    // CORS заголовки
+    const origin = req.headers.origin;
+    if (origin === 'https://ekskyrsiadima.ru' || origin === 'https://cv91330.tw1.ru') {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+
     // Парсим JSON тело для Vercel
-    if (req.method === 'POST' && typeof req.body === 'string') {
+    if (req.method === 'POST') {
       try {
         req.body = JSON.parse(req.body);
-        console.log('Parsed body:', req.body);
       } catch (e) {
         console.log('JSON parse error:', e);
         return res.status(400).json({ error: 'Invalid JSON body' });
       }
     }
+
+    console.log('=== REQUEST DEBUG ===');
+    console.log('Method:', req.method);
+    console.log('Headers:', req.headers);
+    console.log('Raw body type:', typeof req.body);
+    console.log('Raw body:', req.body);
     
     console.log('=== ТЕСТ ЛОГИРОВАНИЯ ===');
     console.log('Timestamp:', new Date().toISOString());
