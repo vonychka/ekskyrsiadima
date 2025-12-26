@@ -36,8 +36,8 @@ export default async function handler(req, res) {
     
     // Формируем точные данные как в payment-simple
     const CONFIG = {
-      TERMINAL_KEY: '1766479140271DEMO',
-      PASSWORD: '!BuR2jlFEFF25Hh5'
+      TerminalKey: '1766479140318',
+      PASSWORD: 's9R^$NsmYPytIY#_'
     };
 
     console.log('Конфигурация Тинькофф:');

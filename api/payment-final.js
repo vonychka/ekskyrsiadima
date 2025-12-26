@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 
 const CONFIG = {
-  TERMINAL_KEY: '1766479140271DEMO',
-  PASSWORD: '!BuR2jlFEFF25Hh5',
+  TerminalKey: '1766479140318',
+  PASSWORD: 's9R^$NsmYPytIY#_',
   API_URL: 'https://securepay.tinkoff.ru/v2'
 };
 

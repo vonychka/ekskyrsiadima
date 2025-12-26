@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     // Точные параметры для Тинькофф API
     const paymentData = {
-      TerminalKey: '1766479140271DEMO',
+      TerminalKey: '1766479140318',
       Amount: Math.round(amount * 100),
       OrderId: String(orderId),
       Description: String(description).substring(0, 250),
