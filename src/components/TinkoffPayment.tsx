@@ -27,6 +27,9 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Updated: Using live Tinkoff credentials
+  console.log('TinkoffPayment: Using live credentials (v2.0)');
+
   const handlePayment = async () => {
     setIsLoading(true);
     setError(null);
