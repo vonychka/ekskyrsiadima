@@ -113,6 +113,7 @@ export default async function handler(req, res) {
     console.log('Отправляем в Тинькофф:', JSON.stringify(paymentData, null, 2));
     console.log('SuccessURL:', paymentData.SuccessURL);
     console.log('FailURL:', paymentData.FailURL);
+    console.log('NotificationURL:', paymentData.NotificationURL);
 
     // Запрос в Тинькофф
     const response = await fetch(`${CONFIG.API_URL}/Init`, {
