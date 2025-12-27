@@ -35,8 +35,8 @@ export const TinkoffPaymentMobile: React.FC<TinkoffPaymentMobileProps> = ({
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       const apiUrl = isMobile 
-        ? 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-mobile'
-        : 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-working';
+        ? 'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-mobile'
+        : 'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-working';
 
       const response = await fetch(apiUrl, {
         method: 'POST',
