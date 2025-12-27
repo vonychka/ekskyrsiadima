@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { createHash } from 'crypto';
+import TinkoffMerchantAPI from 'tinkoff-merchant-api';
 
 const app = express();
 
@@ -19,6 +20,9 @@ const CONFIG = {
   PASSWORD: '!BuR2jlFEFF25Hh5',     // Тестовый пароль
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
+
+/* ================= TINKOFF API ================= */
+const tinkoffAPI = new TinkoffMerchantAPI(CONFIG.TERMINAL_KEY, CONFIG.PASSWORD);
 
 /* ================= TOKEN (РАБОЧИЙ ВАРИАНТ) ================= */
 function generateToken(data) {
@@ -117,27 +121,35 @@ app.post('/api/tinkoff-working', async (req, res) => {
     paymentData.Token = generateToken(paymentData);
 
     console.log('=== ПОЛНЫЙ ЗАПРОС В ТИНЬКОФФ ===');
-    console.log('JSON:', JSON.stringify(paymentData, null, 2));
-    console.log('TOKEN DEBUG:');
-    console.log('- TerminalKey:', paymentData.TerminalKey);
-    console.log('- Amount:', paymentData.Amount);
-    console.log('- OrderId:', paymentData.OrderId);
-    console.log('- Description:', paymentData.Description);
-    console.log('- CustomerKey:', paymentData.CustomerKey);
-    console.log('- Email:', paymentData.Email);
-    console.log('- Phone:', paymentData.Phone);
-    console.log('=== КОНЕЦ ДЕБАГА ===');
+    console.log('=== ИСПОЛЬЗУЕМ БИБЛИОТЕКУ ТИНЬКОФФ ===');
+    console.log('REQUEST DATA:', JSON.stringify(paymentData, null, 2));
 
-    const response = await fetch(`${CONFIG.API_URL}/Init`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(paymentData),
-    });
+    try {
+      const result = await tinkoffAPI.init({
+        Amount: paymentData.Amount,
+        OrderId: paymentData.OrderId,
+        Description: paymentData.Description,
+        CustomerKey: paymentData.CustomerKey,
+        Email: paymentData.Email,
+        Phone: paymentData.Phone,
+        Receipt: paymentData.Receipt,
+        SuccessURL: paymentData.SuccessURL,
+        FailURL: paymentData.FailURL,
+        NotificationURL: paymentData.NotificationURL,
+      });
 
-    const result = await response.json();
-    console.log('TINKOFF RESPONSE:', result);
+      console.log('TINKOFF LIBRARY RESPONSE:', result);
+      res.status(200).json(result);
 
-    res.status(result.Success ? 200 : 400).json(result);
+    } catch (error) {
+      console.log('TINKOFF LIBRARY ERROR:', error);
+      res.status(400).json({ 
+        Success: false, 
+        ErrorCode: 'LIBRARY_ERROR',
+        Message: error.message,
+        Details: 'Error using Tinkoff library'
+      });
+    }
 
   } catch (err) {
     console.error('SERVER ERROR:', err);
