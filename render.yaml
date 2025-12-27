@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ekskyrsiadima-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+    healthCheckPath: /api/tinkoff-working
