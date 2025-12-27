@@ -20,22 +20,22 @@ const CONFIG = {
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
 
-/* ================= TOKEN ================= */
-function generateToken(data) {
-  const allowedFields = {
-    TerminalKey: data.TerminalKey,
-    Amount: data.Amount,
-    OrderId: data.OrderId,
-    Description: data.Description,
-    CustomerKey: data.CustomerKey,
-    Email: data.Email,
-    Phone: data.Phone,
+/* ================= TOKEN (СТРОГО ПО ДОКЕ) ================= */
+function generateToken(fields) {
+  const dataForToken = {
+    TerminalKey: fields.TerminalKey,
+    Amount: fields.Amount,
+    OrderId: fields.OrderId,
+    Description: fields.Description,
+    CustomerKey: fields.CustomerKey,
+    Email: fields.Email,
+    Phone: fields.Phone,
     Password: CONFIG.PASSWORD,
   };
 
-  const tokenString = Object.keys(allowedFields)
+  const tokenString = Object.keys(dataForToken)
     .sort()
-    .map(key => String(allowedFields[key]))
+    .map(key => String(dataForToken[key]))
     .join('');
 
   return createHash('sha256').update(tokenString).digest('hex');
@@ -52,9 +52,10 @@ app.post('/api/tinkoff-working', async (req, res) => {
 
     const amountKopeks = Math.round(Number(amount) * 100);
     const cleanPhone = phone.replace(/\D/g, '');
-    const cleanDescription = `${fullName} - ${description}`.substring(0, 250);
+    const cleanDescription =
+      `${fullName} - ${description}`.substring(0, 250);
 
-    /* ===== Receipt (НЕ УЧАСТВУЕТ В TOKEN) ===== */
+    /* ===== RECEIPT (НЕ УЧАСТВУЕТ В TOKEN) ===== */
     const receipt = {
       Email: email,
       Phone: cleanPhone,
@@ -82,10 +83,13 @@ app.post('/api/tinkoff-working', async (req, res) => {
       CustomerKey: email,
       Email: email,
       Phone: cleanPhone,
+
+      // эти поля НЕ участвуют в Token
       Receipt: receipt,
       SuccessURL: `https://ekskyrsiadima.ru/ticket?success=true&orderId=${orderId}`,
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
-      NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
+      NotificationURL:
+        'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-webhook',
     };
 
     /* ===== TOKEN ===== */
@@ -105,7 +109,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
     res.status(result.Success ? 200 : 400).json(result);
 
   } catch (err) {
-    console.error(err);
+    console.error('SERVER ERROR:', err);
     res.status(500).json({ error: err.message });
   }
 });
