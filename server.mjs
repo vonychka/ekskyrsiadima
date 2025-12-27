@@ -95,7 +95,17 @@ app.post('/api/tinkoff-working', async (req, res) => {
     /* ===== TOKEN ===== */
     paymentData.Token = generateToken(paymentData);
 
-    console.log('SEND TO TINKOFF:', JSON.stringify(paymentData, null, 2));
+    console.log('=== ПОЛНЫЙ ЗАПРОС В ТИНЬКОФФ ===');
+    console.log('JSON:', JSON.stringify(paymentData, null, 2));
+    console.log('TOKEN DEBUG:');
+    console.log('- TerminalKey:', paymentData.TerminalKey);
+    console.log('- Amount:', paymentData.Amount);
+    console.log('- OrderId:', paymentData.OrderId);
+    console.log('- Description:', paymentData.Description);
+    console.log('- CustomerKey:', paymentData.CustomerKey);
+    console.log('- Email:', paymentData.Email);
+    console.log('- Phone:', paymentData.Phone);
+    console.log('=== КОНЕЦ ДЕБАГА ===');
 
     const response = await fetch(`${CONFIG.API_URL}/Init`, {
       method: 'POST',
