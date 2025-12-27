@@ -4,6 +4,7 @@ import { createHash } from 'crypto';
 
 const app = express();
 
+/* ================= CORS ================= */
 app.use(cors({
   origin: 'https://ekskyrsiadima.ru',
   methods: ['POST', 'GET', 'OPTIONS'],
@@ -12,29 +13,35 @@ app.use(cors({
 
 app.use(express.json());
 
+/* ================= CONFIG ================= */
 const CONFIG = {
   TERMINAL_KEY: '1766479140318',
   PASSWORD: 's9R^$NsmYPytIY#_',
-  API_URL: 'https://securepay.tinkoff.ru/v2'
+  API_URL: 'https://securepay.tinkoff.ru/v2',
 };
 
-/**
- * Генерация Token по документации Тинькофф
- * Удаляем ТОЛЬКО Token и Receipt
- */
+/* ================= TOKEN ================= */
 function generateToken(data) {
-  const copy = { ...data };
-  delete copy.Token;
-  delete copy.Receipt;
+  const allowedFields = {
+    TerminalKey: data.TerminalKey,
+    Amount: data.Amount,
+    OrderId: data.OrderId,
+    Description: data.Description,
+    CustomerKey: data.CustomerKey,
+    Email: data.Email,
+    Phone: data.Phone,
+    Password: CONFIG.PASSWORD,
+  };
 
-  const tokenString = Object.keys({ ...copy, Password: CONFIG.PASSWORD })
+  const tokenString = Object.keys(allowedFields)
     .sort()
-    .map(key => (key === 'Password' ? CONFIG.PASSWORD : String(copy[key])))
+    .map(key => String(allowedFields[key]))
     .join('');
 
   return createHash('sha256').update(tokenString).digest('hex');
 }
 
+/* ================= API ================= */
 app.post('/api/tinkoff-working', async (req, res) => {
   try {
     const { amount, description, orderId, fullName, email, phone } = req.body;
@@ -43,11 +50,11 @@ app.post('/api/tinkoff-working', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    const amountKopeks = Math.round(Number(amount) * 100);
     const cleanPhone = phone.replace(/\D/g, '');
     const cleanDescription = `${fullName} - ${description}`.substring(0, 250);
-    const amountKopeks = Math.round(Number(amount) * 100);
 
-    // ЧЕК (Receipt)
+    /* ===== Receipt (НЕ УЧАСТВУЕТ В TOKEN) ===== */
     const receipt = {
       Email: email,
       Phone: cleanPhone,
@@ -61,35 +68,35 @@ app.post('/api/tinkoff-working', async (req, res) => {
           Amount: amountKopeks,
           Tax: 'none',
           PaymentMethod: 'full_prepayment',
-          PaymentObject: 'service'
-        }
-      ]
+          PaymentObject: 'service',
+        },
+      ],
     };
 
-    // ДАННЫЕ ПЛАТЕЖА
+    /* ===== PAYMENT DATA ===== */
     const paymentData = {
       TerminalKey: CONFIG.TERMINAL_KEY,
       Amount: amountKopeks,
       OrderId: String(orderId),
       Description: cleanDescription,
-      SuccessURL: `https://ekskyrsiadima.ru/ticket?success=true&orderId=${orderId}`,
-      FailURL: 'https://ekskyrsiadima.ru/payment-error',
-      NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
       CustomerKey: email,
       Email: email,
       Phone: cleanPhone,
-      Taxation: 'usn_income',
-      Receipt: receipt
+      Receipt: receipt,
+      SuccessURL: `https://ekskyrsiadima.ru/ticket?success=true&orderId=${orderId}`,
+      FailURL: 'https://ekskyrsiadima.ru/payment-error',
+      NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
     };
 
+    /* ===== TOKEN ===== */
     paymentData.Token = generateToken(paymentData);
 
-    console.log('SEND TO TINKOFF:', paymentData);
+    console.log('SEND TO TINKOFF:', JSON.stringify(paymentData, null, 2));
 
     const response = await fetch(`${CONFIG.API_URL}/Init`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(paymentData)
+      body: JSON.stringify(paymentData),
     });
 
     const result = await response.json();
@@ -103,6 +110,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
   }
 });
 
+/* ================= START ================= */
 app.listen(3000, () => {
-  console.log('Server started on port 3000');
+  console.log('✅ Server started on port 3000');
 });
