@@ -24,6 +24,8 @@ const CONFIG = {
 function generateToken(data) {
   const copy = { ...data };
   delete copy.Token;
+  delete copy.Receipt; // Удаляем Receipt
+  delete copy.DATA;    // Удаляем DATA (важно!)
 
   const tokenString = Object.keys({
     ...copy,
