@@ -19,12 +19,13 @@ const TicketPage = () => {
     
     // Проверяем если пришли с успешной оплаты Тинькофф
     const urlParams = new URLSearchParams(location.search);
-    const paymentId = urlParams.get('paymentId');
-    const success = urlParams.get('success');
+    const PaymentId = urlParams.get('PaymentId'); // Правильный параметр Тинькофф
+    const Status = urlParams.get('Status'); // Правильный параметр Тинькофф
+    const OrderId = urlParams.get('OrderId'); // Дополнительно получаем OrderId
     
-    console.log('URL параметры:', { paymentId, success });
+    console.log('URL параметры:', { PaymentId, Status, OrderId });
     
-    if (success === 'true' || paymentId) {
+    if (Status === 'CONFIRMED' || Status === 'AUTHORIZED' || PaymentId) {
       console.log('Обнаружена успешная оплата, загружаем данные...');
       
       // Загружаем данные из localStorage если есть
