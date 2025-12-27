@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { createHash } from 'crypto';
 import TinkoffMerchantAPI from 'tinkoff-merchant-api';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, get, set, update } from 'firebase/database';
 
 const app = express();
 
@@ -20,6 +22,14 @@ const CONFIG = {
   PASSWORD: 's9R^$NsmYPytIY#_',   // Рабочий пароль
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  databaseURL: "https://exursional-default-rtdb.firebaseio.com/"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const database = getDatabase(firebaseApp);
 
 /* ================= TINKOFF API ================= */
 const tinkoffAPI = new TinkoffMerchantAPI(CONFIG.TERMINAL_KEY, CONFIG.PASSWORD);
@@ -247,68 +257,181 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
   }
 });
 
-/* ================= TOUR SLOTS ================= */
-const tourSlots = {
-  'boiarskaia-ekskursiia': {
-    totalSlots: 20,
-    bookedSlots: 0,
-    availableSlots: 20
-  },
-  'kreml-ekskursiia': {
-    totalSlots: 15,
-    bookedSlots: 0,
-    availableSlots: 15
-  },
-  'nizhegorodskaya-yarmarka': {
-    totalSlots: 25,
-    bookedSlots: 0,
-    availableSlots: 25
+/* ================= TOUR SCHEDULES (FIREBASE) ================= */
+const initializeTourSchedules = async () => {
+  const defaultSchedules = [
+    {
+      id: 's1',
+      tourId: '1',
+      date: '2025-12-28',
+      time: '10:00',
+      availableSpots: 20,
+      maxSpots: 20
+    },
+    {
+      id: 's2',
+      tourId: '1',
+      date: '2025-12-28',
+      time: '14:00',
+      availableSpots: 20,
+      maxSpots: 20
+    },
+    {
+      id: 's3',
+      tourId: '1',
+      date: '2025-12-29',
+      time: '10:00',
+      availableSpots: 20,
+      maxSpots: 20
+    },
+    {
+      id: 's4',
+      tourId: '1',
+      date: '2025-12-29',
+      time: '14:00',
+      availableSpots: 20,
+      maxSpots: 20
+    },
+    {
+      id: 's5',
+      tourId: '2',
+      date: '2025-12-28',
+      time: '18:00',
+      availableSpots: 15,
+      maxSpots: 15
+    },
+    {
+      id: 's6',
+      tourId: '2',
+      date: '2025-12-29',
+      time: '18:00',
+      availableSpots: 15,
+      maxSpots: 15
+    },
+    {
+      id: 's7',
+      tourId: '3',
+      date: '2025-12-28',
+      time: '11:00',
+      availableSpots: 25,
+      maxSpots: 25
+    },
+    {
+      id: 's8',
+      tourId: '3',
+      date: '2025-12-29',
+      time: '11:00',
+      availableSpots: 25,
+      maxSpots: 25
+    }
+  ];
+
+  try {
+    const schedulesRef = ref(database, 'tourSchedules');
+    const snapshot = await get(schedulesRef);
+    
+    if (!snapshot.exists()) {
+      console.log('Инициализация расписаний в Firebase...');
+      const schedulesData = {};
+      defaultSchedules.forEach(schedule => {
+        schedulesData[schedule.id] = schedule;
+      });
+      await set(schedulesRef, schedulesData);
+      console.log('Расписания инициализированы в Firebase');
+    }
+  } catch (error) {
+    console.error('Ошибка инициализации расписаний:', error);
   }
 };
 
-app.get('/api/tour-slots/:tourId', (req, res) => {
-  const { tourId } = req.params;
-  const slots = tourSlots[tourId];
-  
-  if (!slots) {
-    return res.status(404).json({ error: 'Экскурсия не найдена' });
+// Инициализация при запуске
+initializeTourSchedules();
+
+app.get('/api/tour-schedules/:tourId', async (req, res) => {
+  try {
+    const { tourId } = req.params;
+    const schedulesRef = ref(database, 'tourSchedules');
+    const snapshot = await get(schedulesRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ error: 'Расписания не найдены' });
+    }
+    
+    const allSchedules = snapshot.val();
+    const tourSchedules = Object.values(allSchedules).filter(schedule => schedule.tourId === tourId);
+    
+    // Фильтруем прошедшие даты
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    const upcomingSchedules = tourSchedules.filter(schedule => {
+      const scheduleDate = schedule.date;
+      const scheduleTime = schedule.time.split(':');
+      const scheduleHour = parseInt(scheduleTime[0]);
+      const scheduleMinute = parseInt(scheduleTime[1]);
+      
+      if (scheduleDate > today) return true;
+      if (scheduleDate === today) {
+        return (scheduleHour > currentHour) || 
+               (scheduleHour === currentHour && scheduleMinute > currentMinute);
+      }
+      return false;
+    });
+    
+    res.json(upcomingSchedules);
+  } catch (error) {
+    console.error('Ошибка получения расписаний:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
-  
-  res.json(slots);
 });
 
-app.post('/api/book-slots', (req, res) => {
-  const { tourId, numberOfPeople } = req.body;
-  
-  if (!tourId || !numberOfPeople || numberOfPeople <= 0) {
-    return res.status(400).json({ error: 'Неверные данные' });
-  }
-  
-  const slots = tourSlots[tourId];
-  
-  if (!slots) {
-    return res.status(404).json({ error: 'Экскурсия не найдена' });
-  }
-  
-  if (slots.availableSlots < numberOfPeople) {
-    return res.status(400).json({ 
-      error: 'Недостаточно мест',
-      availableSlots: slots.availableSlots 
+app.post('/api/book-schedule', async (req, res) => {
+  try {
+    const { scheduleId, numberOfPeople } = req.body;
+    
+    if (!scheduleId || !numberOfPeople || numberOfPeople <= 0) {
+      return res.status(400).json({ error: 'Неверные данные' });
+    }
+    
+    const scheduleRef = ref(database, `tourSchedules/${scheduleId}`);
+    const snapshot = await get(scheduleRef);
+    
+    if (!snapshot.exists()) {
+      return res.status(404).json({ error: 'Расписание не найдено' });
+    }
+    
+    const schedule = snapshot.val();
+    
+    if (schedule.availableSpots < numberOfPeople) {
+      return res.status(400).json({ 
+        error: 'Недостаточно мест',
+        availableSpots: schedule.availableSpots 
+      });
+    }
+    
+    // Бронируем места в расписании
+    const updatedSchedule = {
+      ...schedule,
+      availableSpots: schedule.availableSpots - numberOfPeople
+    };
+    
+    await set(scheduleRef, updatedSchedule);
+    
+    console.log(`Забронировано ${numberOfPeople} мест для расписания ${scheduleId}. Осталось: ${updatedSchedule.availableSpots}`);
+    
+    res.json({
+      success: true,
+      scheduleId: scheduleId,
+      bookedSlots: numberOfPeople,
+      availableSpots: updatedSchedule.availableSpots,
+      maxSpots: updatedSchedule.maxSpots
     });
+  } catch (error) {
+    console.error('Ошибка бронирования расписания:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
-  
-  // Бронируем места
-  slots.bookedSlots += numberOfPeople;
-  slots.availableSlots -= numberOfPeople;
-  
-  console.log(`Забронировано ${numberOfPeople} мест для ${tourId}. Осталось: ${slots.availableSlots}`);
-  
-  res.json({
-    success: true,
-    bookedSlots: numberOfPeople,
-    availableSlots: slots.availableSlots,
-    totalSlots: slots.totalSlots
-  });
 });
 
 /* ================= CLIENT DATA ================= */

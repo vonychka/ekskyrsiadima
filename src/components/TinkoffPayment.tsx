@@ -60,35 +60,43 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
       }
 
       // Определяем ID экскурсии из описания
-      let tourId = 'boiarskaia-ekskursiia'; // по умолчанию
-      if (description.toLowerCase().includes('кремль')) {
-        tourId = 'kreml-ekskursiia';
-      } else if (description.toLowerCase().includes('ярмарк')) {
-        tourId = 'nizhegorodskaya-yarmarka';
+      let tourId = '1'; // по умолчанию - Историческая прогулка
+      if (description.toLowerCase().includes('вечерней') || description.toLowerCase().includes('набережной')) {
+        tourId = '2'; // Вечерняя прогулка
+      } else if (description.toLowerCase().includes('архитектур') || description.toLowerCase().includes('наследии')) {
+        tourId = '3'; // Архитектурное наследие
       }
 
-      // Проверяем доступность мест
-      const slotsResponse = await fetch(`https://nextjs-boilerplateuexkyesua.onrender.com/api/tour-slots/${tourId}`);
-      const slotsData = await slotsResponse.json();
+      // Получаем доступные расписания
+      const schedulesResponse = await fetch(`https://nextjs-boilerplateuexkyesua.onrender.com/api/tour-schedules/${tourId}`);
+      const schedulesData = await schedulesResponse.json();
       
-      if (!slotsResponse.ok) {
-        throw new Error('Ошибка проверки доступности мест');
+      if (!schedulesResponse.ok) {
+        throw new Error('Ошибка получения расписаний');
       }
 
-      console.log('Доступные места:', slotsData.availableSlots);
+      console.log('Доступные расписания:', schedulesData);
       
-      if (slotsData.availableSlots < 1) {
-        throw new Error('Нет доступных мест для этой экскурсии');
+      if (schedulesData.length === 0) {
+        throw new Error('Нет доступных расписаний для этой экскурсии');
       }
 
-      // Бронируем места
-      const bookResponse = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/book-slots', {
+      // Берем ближайшее расписание
+      const nearestSchedule = schedulesData[0];
+      console.log('Выбрано расписание:', nearestSchedule);
+      
+      if (nearestSchedule.availableSpots < 1) {
+        throw new Error('Нет доступных мест для этого времени');
+      }
+
+      // Бронируем место в расписании
+      const bookResponse = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/book-schedule', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          tourId: tourId,
+          scheduleId: nearestSchedule.id,
           numberOfPeople: 1
         }),
       });
@@ -96,10 +104,10 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
       const bookResult = await bookResponse.json();
       
       if (!bookResponse.ok) {
-        throw new Error(bookResult.error || 'Ошибка бронирования мест');
+        throw new Error(bookResult.error || 'Ошибка бронирования места');
       }
 
-      console.log('Места забронированы:', bookResult);
+      console.log('Место забронировано:', bookResult);
       
       const requestData = {
         amount: Number(amount),
