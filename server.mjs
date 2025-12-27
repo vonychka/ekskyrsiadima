@@ -29,6 +29,9 @@ function generateToken(data) {
   delete copy.Token;
   delete copy.Receipt; // Удаляем Receipt
   delete copy.DATA;    // Удаляем DATA (важно!)
+  delete copy.SuccessURL;    // Удаляем URL поля
+  delete copy.FailURL;       // Удаляем URL поля
+  delete copy.NotificationURL; // Удаляем URL поля
   
   console.log('After delete keys:', Object.keys(copy));
   
