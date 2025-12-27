@@ -15,8 +15,8 @@ app.use(express.json());
 
 /* ================= CONFIG ================= */
 const CONFIG = {
-  TERMINAL_KEY: '1766479140318',
-  PASSWORD: 's9R^$NsmYPytIY#_',
+  TERMINAL_KEY: '1766479140271DEMO', // Тестовый терминал
+  PASSWORD: '!BuR2jlFEFF25Hh5',     // Тестовый пароль
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
 
