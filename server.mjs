@@ -152,6 +152,61 @@ app.post('/api/tinkoff-working', async (req, res) => {
   }
 });
 
+/* ================= TELEGRAM ================= */
+const sendWebhookToTelegram = async (webhookData) => {
+  try {
+    console.log('=== ОТПРАВКА ВЕБХУКА В TELEGRAM ===');
+    
+    const botToken = '8209677930:AAFYQhWh_a4NvzRgnBjeJTO_Af5JkxWeauE';
+    const chatId = '1183482279';
+    
+    const message = `
+💰 УВЕДОМЛЕНИЕ ОБ ОПЛАТЕ ТИНЬКОФФ
+
+📋 ДАННЫЕ ПЛАТЕЖА:
+ID платежа: ${webhookData.PaymentId || 'Не указано'}
+ID заказа: ${webhookData.OrderId || 'Не указано'}
+Сумма: ${webhookData.Amount ? (webhookData.Amount / 100).toFixed(2) : '0'} ₽
+Статус: ${webhookData.Status || 'Не указано'}
+
+👤 КЛИЕНТ:
+Email: ${webhookData.Email || 'Не указано'}
+Телефон: ${webhookData.Phone || 'Не указано'}
+
+📝 ОПИСАНИЕ: ${webhookData.Description || 'Не указано'}
+
+⏰ Время: ${new Date().toLocaleString('ru-RU')}
+🔗 Канал: https://t.me/agenDima
+    `.trim();
+
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+    const response = await fetch(telegramUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+
+    const result = await response.json();
+    console.log('Ответ Telegram:', result);
+
+    if (response.ok && result.ok) {
+      console.log('✅ Вебхок успешно отправлен в Telegram');
+    } else {
+      console.error('❌ Ошибка отправки в Telegram:', result);
+    }
+
+  } catch (error) {
+    console.error('❌ Ошибка отправки в Telegram:', error);
+  }
+};
+
 /* ================= WEBHOOK ================= */
 app.post('/api/tinkoff-webhook', async (req, res) => {
   try {
@@ -175,9 +230,13 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
     // Обработка уведомления
     if (req.body.Status === 'CONFIRMED' || req.body.Status === 'AUTHORIZED') {
       console.log('✅ Payment confirmed:', req.body.PaymentId);
-      // Здесь можно добавить логику обработки успешной оплаты
+      await sendWebhookToTelegram(req.body);
     } else if (req.body.Status === 'REJECTED' || req.body.Status === 'CANCELED') {
       console.log('❌ Payment rejected:', req.body.PaymentId);
+      await sendWebhookToTelegram(req.body);
+    } else {
+      console.log('ℹ️ Payment status:', req.body.Status);
+      await sendWebhookToTelegram(req.body);
     }
     
     // Ответ Тинькофф что вебхок принят
