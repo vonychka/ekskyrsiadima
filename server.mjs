@@ -259,86 +259,42 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
 });
 
 /* ================= TOUR SCHEDULES (FIREBASE) ================= */
-const initializeTourSchedules = async () => {
-  const defaultSchedules = [
-    {
-      id: 's1',
-      tourId: '1',
-      date: '2025-12-28',
-      time: '10:00',
-      availableSpots: 20,
-      maxSpots: 20
-    },
-    {
-      id: 's2',
-      tourId: '1',
-      date: '2025-12-28',
-      time: '14:00',
-      availableSpots: 20,
-      maxSpots: 20
-    },
-    {
-      id: 's3',
-      tourId: '1',
-      date: '2025-12-29',
-      time: '10:00',
-      availableSpots: 20,
-      maxSpots: 20
-    },
-    {
-      id: 's4',
-      tourId: '1',
-      date: '2025-12-29',
-      time: '14:00',
-      availableSpots: 20,
-      maxSpots: 20
-    },
-    {
-      id: 's5',
-      tourId: '2',
-      date: '2025-12-28',
-      time: '18:00',
-      availableSpots: 15,
-      maxSpots: 15
-    },
-    {
-      id: 's6',
-      tourId: '2',
-      date: '2025-12-29',
-      time: '18:00',
-      availableSpots: 15,
-      maxSpots: 15
-    },
-    {
-      id: 's7',
-      tourId: '3',
-      date: '2025-12-28',
-      time: '11:00',
-      availableSpots: 25,
-      maxSpots: 25
-    },
-    {
-      id: 's8',
-      tourId: '3',
-      date: '2025-12-29',
-      time: '11:00',
-      availableSpots: 25,
-      maxSpots: 25
+// Получаем расписания из Firebase (созданные в админке)
+const getAdminSchedules = async () => {
+  try {
+    const schedulesRef = ref(database, 'schedules');
+    const snapshot = await get(schedulesRef);
+    
+    if (snapshot.exists()) {
+      const schedules = snapshot.val();
+      return Object.values(schedules).map(schedule => ({
+        ...schedule,
+        availableSpots: schedule.maxSpots - (schedule.bookedSpots || 0)
+      }));
     }
-  ];
+    return [];
+  } catch (error) {
+    console.error('Ошибка получения расписаний из админки:', error);
+    return [];
+  }
+};
 
+const initializeTourSchedules = async () => {
+  // Получаем расписания из админки
+  const adminSchedules = await getAdminSchedules();
+  
   try {
     const schedulesRef = ref(database, 'tourSchedules');
     const snapshot = await get(schedulesRef);
     
-    if (!snapshot.exists()) {
-      console.log('Инициализация расписаний в Firebase...');
+    if (!snapshot.exists() && adminSchedules.length > 0) {
+      console.log('Инициализация расписаний из админки в Firebase...');
       const schedulesData = {};
-      defaultSchedules.forEach(schedule => {
+      adminSchedules.forEach(schedule => {
         schedulesData[schedule.id] = schedule;
       });
       await set(schedulesRef, schedulesData);
-      console.log('Расписания инициализированы в Firebase');
+      console.log('Расписания из админки инициализированы в Firebase');
     }
   } catch (error) {
     console.error('Ошибка инициализации расписаний:', error);
@@ -353,12 +309,51 @@ app.get('/api/tour-schedules/:tourId', async (req, res) => {
     const { tourId } = req.params;
     console.log(`Получение расписаний для тура: ${tourId}`);
     
+    // Сначала пытаемся получить расписания из админки
+    let adminSchedules = [];
+    try {
+      adminSchedules = await getAdminSchedules();
+      console.log('Получены расписания из админки:', adminSchedules.length);
+    } catch (adminError) {
+      console.log('Не удалось получить расписания из админки:', adminError.message);
+    }
+    
+    // Фильтруем расписания для конкретного тура
+    const tourSchedules = adminSchedules.filter(schedule => schedule.tourId === tourId);
+    
+    if (tourSchedules.length > 0) {
+      // Фильтруем прошедшие даты
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      
+      const upcomingSchedules = tourSchedules.filter(schedule => {
+        const scheduleDate = schedule.date;
+        const scheduleTime = schedule.time.split(':');
+        const scheduleHour = parseInt(scheduleTime[0]);
+        const scheduleMinute = parseInt(scheduleTime[1]);
+        
+        if (scheduleDate > today) return true;
+        if (scheduleDate === today) {
+          return (scheduleHour > currentHour) || 
+                 (scheduleHour === currentHour && scheduleMinute > currentMinute);
+        }
+        return false;
+      });
+      
+      console.log(`Отфильтровано расписаний из админки для тура ${tourId}:`, upcomingSchedules.length);
+      return res.json(upcomingSchedules);
+    }
+    
+    // Если в админке нет расписаний, используем Firebase
+    console.log('Расписаний в админке нет, пробуем Firebase');
     const schedulesRef = ref(database, 'tourSchedules');
     const snapshot = await get(schedulesRef);
     
     if (!snapshot.exists()) {
-      console.log('Расписания не найдены в Firebase, используем данные по умолчанию');
-      // Возвращаем тестовые данные если Firebase пуст
+      console.log('Расписания не найдены, используем тестовые данные');
+      // Возвращаем тестовые данные
       const defaultSchedules = [
         {
           id: 's1',
@@ -378,14 +373,14 @@ app.get('/api/tour-schedules/:tourId', async (req, res) => {
         }
       ];
       
-      const tourSchedules = defaultSchedules.filter(schedule => schedule.tourId === tourId);
-      return res.json(tourSchedules);
+      const filteredSchedules = defaultSchedules.filter(schedule => schedule.tourId === tourId);
+      return res.json(filteredSchedules);
     }
     
     const allSchedules = snapshot.val();
     console.log('Получены расписания из Firebase:', Object.keys(allSchedules));
     
-    const tourSchedules = Object.values(allSchedules).filter(schedule => schedule.tourId === tourId);
+    const firebaseSchedules = Object.values(allSchedules).filter(schedule => schedule.tourId === tourId);
     
     // Фильтруем прошедшие даты
     const now = new Date();
@@ -393,7 +388,7 @@ app.get('/api/tour-schedules/:tourId', async (req, res) => {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    const upcomingSchedules = tourSchedules.filter(schedule => {
+    const upcomingSchedules = firebaseSchedules.filter(schedule => {
       const scheduleDate = schedule.date;
       const scheduleTime = schedule.time.split(':');
       const scheduleHour = parseInt(scheduleTime[0]);
@@ -407,13 +402,14 @@ app.get('/api/tour-schedules/:tourId', async (req, res) => {
       return false;
     });
     
-    console.log(`Отфильтровано расписаний для тура ${tourId}:`, upcomingSchedules.length);
+    console.log(`Отфильтровано расписаний из Firebase для тура ${tourId}:`, upcomingSchedules.length);
     res.json(upcomingSchedules);
+    
   } catch (error) {
     console.error('Ошибка получения расписаний:', error);
     
-    // Возвращаем тестовые данные при ошибке Firebase
-    console.log('Используем тестовые данные из-за ошибки Firebase');
+    // Возвращаем тестовые данные при ошибке
+    console.log('Используем тестовые данные из-за ошибки');
     const requestedTourId = req.params.tourId;
     const defaultSchedules = [
       {
@@ -449,14 +445,46 @@ app.post('/api/book-schedule', async (req, res) => {
     console.log(`Попытка бронирования ${numberOfPeople} мест для расписания ${scheduleId}`);
     
     let schedule;
+    let isFromAdmin = false;
     
+    // Сначала пытаемся найти расписание в админке
     try {
-      const scheduleRef = ref(database, `tourSchedules/${scheduleId}`);
-      const snapshot = await get(scheduleRef);
+      const adminSchedules = await getAdminSchedules();
+      const adminSchedule = adminSchedules.find(s => s.id === scheduleId);
       
-      if (!snapshot.exists()) {
-        console.log('Расписание не найдено в Firebase, используем тестовые данные');
-        // Тестовые данные если Firebase не работает
+      if (adminSchedule) {
+        schedule = adminSchedule;
+        isFromAdmin = true;
+        console.log('Найдено расписание в админке:', schedule);
+      }
+    } catch (adminError) {
+      console.log('Ошибка при поиске в админке:', adminError.message);
+    }
+    
+    // Если не нашли в админке, ищем в Firebase
+    if (!schedule) {
+      try {
+        const scheduleRef = ref(database, `tourSchedules/${scheduleId}`);
+        const snapshot = await get(scheduleRef);
+        
+        if (snapshot.exists()) {
+          schedule = snapshot.val();
+          console.log('Найдено расписание в Firebase:', schedule);
+        } else {
+          console.log('Расписание не найдено, используем тестовые данные');
+          // Тестовые данные
+          schedule = {
+            id: scheduleId,
+            tourId: '1',
+            date: '2025-12-28',
+            time: '10:00',
+            availableSpots: 20,
+            maxSpots: 20
+          };
+        }
+      } catch (firebaseError) {
+        console.error('Ошибка Firebase при получении расписания:', firebaseError);
+        // Используем тестовые данные при ошибке
         schedule = {
           id: scheduleId,
           tourId: '1',
@@ -465,20 +493,7 @@ app.post('/api/book-schedule', async (req, res) => {
           availableSpots: 20,
           maxSpots: 20
         };
-      } else {
-        schedule = snapshot.val();
       }
-    } catch (firebaseError) {
-      console.error('Ошибка Firebase при получении расписания:', firebaseError);
-      // Используем тестовые данные при ошибке Firebase
-      schedule = {
-        id: scheduleId,
-        tourId: '1',
-        date: '2025-12-28',
-        time: '10:00',
-        availableSpots: 20,
-        maxSpots: 20
-      };
     }
     
     if (schedule.availableSpots < numberOfPeople) {
@@ -491,15 +506,32 @@ app.post('/api/book-schedule', async (req, res) => {
     // Бронируем места
     const updatedSchedule = {
       ...schedule,
-      availableSpots: schedule.availableSpots - numberOfPeople
+      availableSpots: schedule.availableSpots - numberOfPeople,
+      bookedSpots: (schedule.bookedSpots || 0) + numberOfPeople
     };
     
-    try {
-      const scheduleRef = ref(database, `tourSchedules/${scheduleId}`);
-      await set(scheduleRef, updatedSchedule);
-    } catch (firebaseError) {
-      console.error('Ошибка Firebase при сохранении:', firebaseError);
-      // Продолжаем даже если Firebase не работает
+    // Сохраняем в зависимости от источника
+    if (isFromAdmin) {
+      try {
+        // Обновляем в админке (schedules)
+        const adminScheduleRef = ref(database, `schedules/${scheduleId}`);
+        await update(adminScheduleRef, {
+          availableSpots: updatedSchedule.availableSpots,
+          bookedSpots: updatedSchedule.bookedSpots
+        });
+        console.log('Расписание обновлено в админке');
+      } catch (adminError) {
+        console.error('Ошибка при обновлении в админке:', adminError);
+      }
+    } else {
+      try {
+        // Обновляем в tourSchedules
+        const scheduleRef = ref(database, `tourSchedules/${scheduleId}`);
+        await set(scheduleRef, updatedSchedule);
+        console.log('Расписание обновлено в Firebase');
+      } catch (firebaseError) {
+        console.error('Ошибка Firebase при сохранении:', firebaseError);
+      }
     }
     
     console.log(`Забронировано ${numberOfPeople} мест для расписания ${scheduleId}. Осталось: ${updatedSchedule.availableSpots}`);
@@ -509,7 +541,8 @@ app.post('/api/book-schedule', async (req, res) => {
       scheduleId: scheduleId,
       bookedSlots: numberOfPeople,
       availableSpots: updatedSchedule.availableSpots,
-      maxSpots: updatedSchedule.maxSpots
+      maxSpots: updatedSchedule.maxSpots,
+      source: isFromAdmin ? 'admin' : 'firebase'
     });
   } catch (error) {
     console.error('Ошибка бронирования расписания:', error);
