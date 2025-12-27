@@ -22,6 +22,7 @@ function generateToken(data) {
   delete copy.Email;
   delete copy.Phone;
   delete copy.Description;
+  delete copy.OrderId;
 
   const tokenData = {
     ...copy,
