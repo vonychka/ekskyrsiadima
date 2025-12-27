@@ -125,17 +125,12 @@ app.post('/api/tinkoff-working', async (req, res) => {
     console.log('REQUEST DATA:', JSON.stringify(paymentData, null, 2));
 
     try {
+      // МИНИМАЛЬНЫЙ ЗАПРОС БЕЗ RECEIPT
       const result = await tinkoffAPI.init({
         Amount: paymentData.Amount,
         OrderId: paymentData.OrderId,
         Description: paymentData.Description,
         CustomerKey: paymentData.CustomerKey,
-        Email: paymentData.Email,
-        Phone: paymentData.Phone,
-        Receipt: paymentData.Receipt,
-        SuccessURL: paymentData.SuccessURL,
-        FailURL: paymentData.FailURL,
-        NotificationURL: paymentData.NotificationURL,
       });
 
       console.log('TINKOFF LIBRARY RESPONSE:', result);
