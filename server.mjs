@@ -88,8 +88,6 @@ app.post('/api/tinkoff-working', async (req, res) => {
     const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
     
     const receipt = {
-      Email: email,
-      Phone: phone,
       EmailCompany: 'sokovdima3@gmail.com',
       Taxation: 'usn_income',
       FfdVersion: '1.05',
@@ -112,8 +110,6 @@ app.post('/api/tinkoff-working', async (req, res) => {
       CustomerKey: String(orderId),
       PayType: 'O',
       Recurrent: 'N',
-      Email: email,
-      Phone: phone ? phone.replace(/\D/g, '') : undefined,
       SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId),
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
       NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
