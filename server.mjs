@@ -45,7 +45,7 @@ function generateToken(data) {
   
   console.log('Token data keys:', Object.keys(tokenData));
   
-  const sortedKeys = Object.keys(tokenData).sort();
+  const sortedKeys = ['Amount', 'Description', 'OrderId', 'Password', 'TerminalKey'];
   console.log('Sorted keys:', sortedKeys);
   
   const tokenString = sortedKeys.map(key => {
