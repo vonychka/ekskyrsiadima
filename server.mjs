@@ -20,25 +20,25 @@ const CONFIG = {
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
 
-/* ================= TOKEN (СТРОГО ПО ДОКЕ) ================= */
-function generateToken(fields) {
-  const dataForToken = {
-    TerminalKey: fields.TerminalKey,
-    Amount: fields.Amount,
-    OrderId: fields.OrderId,
-    Description: fields.Description,
-    CustomerKey: fields.CustomerKey,
-    Email: fields.Email,
-    Phone: fields.Phone,
-    Password: CONFIG.PASSWORD,
-  };
+/* ================= TOKEN (РАБОЧИЙ ВАРИАНТ) ================= */
+function generateToken(data) {
+  const copy = { ...data };
+  delete copy.Token;
 
-  const tokenString = Object.keys(dataForToken)
+  const tokenString = Object.keys({
+    ...copy,
+    Password: CONFIG.PASSWORD
+  })
     .sort()
-    .map(key => String(dataForToken[key]))
+    .map(key => {
+      if (key === 'Password') return CONFIG.PASSWORD;
+      return copy[key];
+    })
     .join('');
 
-  return createHash('sha256').update(tokenString).digest('hex');
+  return createHash('sha256')
+    .update(tokenString)
+    .digest('hex');
 }
 
 /* ================= API ================= */
