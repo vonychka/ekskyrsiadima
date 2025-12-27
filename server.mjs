@@ -76,7 +76,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const amountKopeks = Number(amount); // Без преобразования в копейки
+    const amountKopeks = Math.round(Number(amount) * 100);
     const cleanPhone = phone.replace(/\D/g, '');
     const cleanDescription = `Payment for tour`.substring(0, 250);
 
