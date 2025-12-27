@@ -3,7 +3,7 @@ import { useOptimizedTours } from '../hooks/useOptimizedTours';
 import TourCard from '../components/TourCard';
 import StaticReviewsSection from '../components/StaticReviewsSection';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { WebhookTestButton } from '../components/WebhookTestButton';
+import { ScheduleTestButton } from '../components/ScheduleTestButton';
 import { MapPin, Award, Users, Clock } from 'lucide-react';
 import { getNearestTourSpots } from '../data/tours';
 import { Tour } from '../types';
@@ -346,10 +346,10 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Webhook Test Section */}
+      {/* Schedule Test Section */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
-          <WebhookTestButton />
+          <ScheduleTestButton />
         </div>
       </section>
     </div>
