@@ -22,25 +22,39 @@ const CONFIG = {
 
 /* ================= TOKEN (РАБОЧИЙ ВАРИАНТ) ================= */
 function generateToken(data) {
+  console.log('=== TOKEN GENERATION START ===');
   const copy = { ...data };
+  console.log('Original keys:', Object.keys(copy));
+  
   delete copy.Token;
   delete copy.Receipt; // Удаляем Receipt
   delete copy.DATA;    // Удаляем DATA (важно!)
-
-  const tokenString = Object.keys({
+  
+  console.log('After delete keys:', Object.keys(copy));
+  
+  const tokenData = {
     ...copy,
     Password: CONFIG.PASSWORD
-  })
-    .sort()
-    .map(key => {
-      if (key === 'Password') return CONFIG.PASSWORD;
-      return copy[key];
-    })
-    .join('');
-
-  return createHash('sha256')
-    .update(tokenString)
-    .digest('hex');
+  };
+  
+  console.log('Token data keys:', Object.keys(tokenData));
+  
+  const sortedKeys = Object.keys(tokenData).sort();
+  console.log('Sorted keys:', sortedKeys);
+  
+  const tokenString = sortedKeys.map(key => {
+    const value = key === 'Password' ? CONFIG.PASSWORD : tokenData[key];
+    console.log(`Key: ${key}, Value: ${value}, Type: ${typeof value}`);
+    return String(value);
+  }).join('');
+  
+  console.log('Token string:', tokenString);
+  
+  const token = createHash('sha256').update(tokenString).digest('hex');
+  console.log('Generated token:', token);
+  console.log('=== TOKEN GENERATION END ===');
+  
+  return token;
 }
 
 /* ================= API ================= */
