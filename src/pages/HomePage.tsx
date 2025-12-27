@@ -3,7 +3,6 @@ import { useOptimizedTours } from '../hooks/useOptimizedTours';
 import TourCard from '../components/TourCard';
 import StaticReviewsSection from '../components/StaticReviewsSection';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { MapPin, Award, Users, Clock } from 'lucide-react';
 import { getNearestTourSpots } from '../data/tours';
 import { Tour } from '../types';
 
