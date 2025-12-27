@@ -88,6 +88,8 @@ app.post('/api/tinkoff-working', async (req, res) => {
     const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
     
     const receipt = {
+      Email: email || 'noreply@example.com',
+      Phone: phone || '+70000000000',
       EmailCompany: 'sokovdima3@gmail.com',
       Taxation: 'usn_income',
       FfdVersion: '1.05',
