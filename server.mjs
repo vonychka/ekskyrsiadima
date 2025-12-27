@@ -31,6 +31,8 @@ console.log('=== SERVER FILE DEBUG ===');
 console.log('Running server.mjs - ES module version');
 console.log('Current working directory:', process.cwd());
 console.log('Node version:', process.version);
+console.log('TerminalKey:', CONFIG.TERMINAL_KEY);
+console.log('Password exists:', !!CONFIG.PASSWORD);
 console.log('=== END DEBUG ===');
 
 const app = express();
