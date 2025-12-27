@@ -28,8 +28,9 @@ function generateToken(data) {
 }
 
 console.log('=== SERVER FILE DEBUG ===');
-console.log('Running file:', __filename);
+console.log('Running server.mjs - ES module version');
 console.log('Current working directory:', process.cwd());
+console.log('Node version:', process.version);
 console.log('=== END DEBUG ===');
 
 const app = express();
