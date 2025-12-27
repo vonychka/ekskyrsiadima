@@ -86,7 +86,6 @@ export default async function handler(req, res) {
         Email: email || 'test@example.com',
         Phone: phone || '+79991234567',
         EmailCompany: 'sokovdima3@gmail.com',
-        Taxation: 'usn',
         FfdVersion: '1.05',
         Items: [{
           Name: cleanDescription.substring(0, 128),
@@ -110,6 +109,7 @@ export default async function handler(req, res) {
         SuccessURL: successUrl,
         FailURL: 'https://ekskyrsiadima.ru/payment-error',
         NotificationURL: 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-webhook',
+        Taxation: 'USN',
         Receipt: receipt
       };
 
@@ -217,7 +217,6 @@ export default async function handler(req, res) {
       Email: email,
       Phone: phone,
       EmailCompany: 'sokovdima3@gmail.com',
-      Taxation: 'usn', // УСН Доход
       FfdVersion: '1.05',
       Items: [
         {
@@ -250,6 +249,7 @@ export default async function handler(req, res) {
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
       // Добавляем webhook для уведомлений о статусе оплаты
       NotificationURL: 'https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-webhook',
+      Taxation: 'USN',
       // Добавляем чек для webhook уведомлений
       Receipt: receipt
     };
