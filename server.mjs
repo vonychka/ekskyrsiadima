@@ -22,7 +22,7 @@ function generateToken(data) {
     })
     .join('');
 
-  return crypto.createHash('sha256')
+  return createHash('sha256')
     .update(tokenString)
     .digest('hex');
 }
@@ -95,7 +95,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       Receipt: receipt
     };
 
-    // Add fullName to description after token generation
+    // Add fullName to description BEFORE token generation
     if (fullName) {
       paymentData.Description = `${fullName} - ${paymentData.Description}`;
     }
