@@ -58,6 +58,48 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
       if (!phone || phone.trim() === '') {
         throw new Error('Телефон обязателен');
       }
+
+      // Определяем ID экскурсии из описания
+      let tourId = 'boiarskaia-ekskursiia'; // по умолчанию
+      if (description.toLowerCase().includes('кремль')) {
+        tourId = 'kreml-ekskursiia';
+      } else if (description.toLowerCase().includes('ярмарк')) {
+        tourId = 'nizhegorodskaya-yarmarka';
+      }
+
+      // Проверяем доступность мест
+      const slotsResponse = await fetch(`https://nextjs-boilerplateuexkyesua.onrender.com/api/tour-slots/${tourId}`);
+      const slotsData = await slotsResponse.json();
+      
+      if (!slotsResponse.ok) {
+        throw new Error('Ошибка проверки доступности мест');
+      }
+
+      console.log('Доступные места:', slotsData.availableSlots);
+      
+      if (slotsData.availableSlots < 1) {
+        throw new Error('Нет доступных мест для этой экскурсии');
+      }
+
+      // Бронируем места
+      const bookResponse = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/book-slots', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tourId: tourId,
+          numberOfPeople: 1
+        }),
+      });
+
+      const bookResult = await bookResponse.json();
+      
+      if (!bookResponse.ok) {
+        throw new Error(bookResult.error || 'Ошибка бронирования мест');
+      }
+
+      console.log('Места забронированы:', bookResult);
       
       const requestData = {
         amount: Number(amount),

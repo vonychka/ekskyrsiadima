@@ -247,6 +247,70 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
   }
 });
 
+/* ================= TOUR SLOTS ================= */
+const tourSlots = {
+  'boiarskaia-ekskursiia': {
+    totalSlots: 20,
+    bookedSlots: 0,
+    availableSlots: 20
+  },
+  'kreml-ekskursiia': {
+    totalSlots: 15,
+    bookedSlots: 0,
+    availableSlots: 15
+  },
+  'nizhegorodskaya-yarmarka': {
+    totalSlots: 25,
+    bookedSlots: 0,
+    availableSlots: 25
+  }
+};
+
+app.get('/api/tour-slots/:tourId', (req, res) => {
+  const { tourId } = req.params;
+  const slots = tourSlots[tourId];
+  
+  if (!slots) {
+    return res.status(404).json({ error: 'Экскурсия не найдена' });
+  }
+  
+  res.json(slots);
+});
+
+app.post('/api/book-slots', (req, res) => {
+  const { tourId, numberOfPeople } = req.body;
+  
+  if (!tourId || !numberOfPeople || numberOfPeople <= 0) {
+    return res.status(400).json({ error: 'Неверные данные' });
+  }
+  
+  const slots = tourSlots[tourId];
+  
+  if (!slots) {
+    return res.status(404).json({ error: 'Экскурсия не найдена' });
+  }
+  
+  if (slots.availableSlots < numberOfPeople) {
+    return res.status(400).json({ 
+      error: 'Недостаточно мест',
+      availableSlots: slots.availableSlots 
+    });
+  }
+  
+  // Бронируем места
+  slots.bookedSlots += numberOfPeople;
+  slots.availableSlots -= numberOfPeople;
+  
+  console.log(`Забронировано ${numberOfPeople} мест для ${tourId}. Осталось: ${slots.availableSlots}`);
+  
+  res.json({
+    success: true,
+    bookedSlots: numberOfPeople,
+    availableSlots: slots.availableSlots,
+    totalSlots: slots.totalSlots
+  });
+});
+
 /* ================= CLIENT DATA ================= */
 app.post('/api/send-client-data', async (req, res) => {
   try {
