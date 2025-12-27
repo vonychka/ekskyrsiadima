@@ -6,7 +6,6 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import { WebhookTestButton } from '../components/WebhookTestButton';
 import { MapPin, Award, Users, Clock } from 'lucide-react';
 import { getNearestTourSpots } from '../data/tours';
-import { Tour } from '../types';
 
 const HomePage: React.FC = () => {
   const { tours, schedules, loading } = useOptimizedTours();
@@ -64,13 +63,7 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const scrollToAbout = () => {
-    const aboutSection = document.getElementById('about-section');
-    if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
+  
   
   const contactInfo = [
     { 
