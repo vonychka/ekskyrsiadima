@@ -73,8 +73,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
 
     const amountKopeks = Math.round(Number(amount) * 100);
     const cleanPhone = phone.replace(/\D/g, '');
-    const cleanDescription =
-      `Payment for tour - ${description}`.substring(0, 250);
+    const cleanDescription = String(description).substring(0, 250);
 
     /* ===== RECEIPT (НЕ УЧАСТВУЕТ В TOKEN) ===== */
     const receipt = {
