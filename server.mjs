@@ -32,7 +32,6 @@ function generateToken(data) {
   delete copy.SuccessURL;    // Удаляем URL поля
   delete copy.FailURL;       // Удаляем URL поля
   delete copy.NotificationURL; // Удаляем URL поля
-  delete copy.CustomerKey;    // Убираем email
   delete copy.Email;          // Убираем email
   delete copy.Phone;          // Убираем телефон
   
@@ -45,7 +44,7 @@ function generateToken(data) {
   
   console.log('Token data keys:', Object.keys(tokenData));
   
-  const sortedKeys = ['Amount', 'Description', 'OrderId', 'Password', 'TerminalKey'];
+  const sortedKeys = ['Amount', 'CustomerKey', 'Description', 'OrderId', 'Password', 'TerminalKey'];
   console.log('Sorted keys:', sortedKeys);
   
   const tokenString = sortedKeys.map(key => {
