@@ -9,48 +9,21 @@ const CONFIG = {
 
 function generateToken(data) {
   const copy = { ...data };
+
   delete copy.Token;
+  delete copy.Receipt; // ← ТОЛЬКО Receipt удаляем
 
-  // Исключаем поля, которые не должны участвовать в токене
-  delete copy.Receipt;
-  delete copy.SuccessURL;
-  delete copy.FailURL;
-  delete copy.NotificationURL;
-  delete copy.CustomerKey;
-  delete copy.PayType;
-  delete copy.Recurrent;
-  delete copy.Email;
-  delete copy.Phone;
-  delete copy.Description;
-  // OrderId оставляем - он обязателен для токена!
-
-  const tokenData = {
+  const tokenString = Object.keys({
     ...copy,
     Password: CONFIG.PASSWORD
-  };
-
-  console.log('=== TOKEN GENERATION DEBUG ===');
-  console.log('Data for token:', JSON.stringify(tokenData, null, 2));
-
-  const tokenString = Object.keys(tokenData)
+  })
     .sort()
-    .map(key => {
-      const value = tokenData[key];
-      console.log(`Token field: ${key} = ${value}`);
-      return String(value);
-    })
+    .map(key => String(key === 'Password' ? CONFIG.PASSWORD : copy[key]))
     .join('');
 
-  console.log('Token string:', tokenString);
-
-  const token = createHash('sha256')
+  return createHash('sha256')
     .update(tokenString)
     .digest('hex');
-
-  console.log('Generated token:', token);
-  console.log('=== END TOKEN DEBUG ===');
-
-  return token;
 }
 
 console.log('=== SERVER FILE DEBUG ===');
@@ -97,7 +70,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
     
     const receipt = {
       Email: email || 'noreply@example.com',
-      Phone: phone || '+70000000000',
+      Phone: phone ? phone.replace(/\D/g, '') : '70000000000',
       EmailCompany: 'sokovdima3@gmail.com',
       Taxation: 'usn_income',
       FfdVersion: '1.05',
@@ -121,7 +94,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       PayType: 'O',
       Recurrent: 'N',
       Email: email || 'noreply@example.com',
-      Phone: phone || '+70000000000',
+      Phone: phone ? phone.replace(/\D/g, '') : '70000000000',
       SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId),
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
       NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
