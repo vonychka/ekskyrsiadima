@@ -28,8 +28,9 @@ function generateToken(data) {
   const tokenString = Object.keys(tokenData)
     .sort()
     .map(key => {
-      if (key === 'Password') return CONFIG.PASSWORD;
-      return tokenData[key];
+      const value = tokenData[key];
+      console.log(`Token field: ${key} = ${value}`);
+      return String(value);
     })
     .join('');
 
