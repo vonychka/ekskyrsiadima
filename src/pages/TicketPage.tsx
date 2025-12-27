@@ -44,7 +44,7 @@ const TicketPage = () => {
         // Отправляем билет на email через Web3Forms
         const ticketData = {
           ...data,
-          paymentId: paymentId || data.paymentId,
+          paymentId: PaymentId || data.paymentId,
           paymentMethod: 'Тинькофф'
         };
         

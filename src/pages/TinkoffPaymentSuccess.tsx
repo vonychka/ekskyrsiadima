@@ -9,7 +9,6 @@ export const TinkoffPaymentSuccess: React.FC = () => {
 
   useEffect(() => {
     const PaymentIdParam = searchParams.get('PaymentId'); // Правильный параметр Тинькофф
-    const OrderIdParam = searchParams.get('OrderId'); // Дополнительно получаем OrderId
     if (PaymentIdParam) {
       setOrderId(PaymentIdParam);
     }
