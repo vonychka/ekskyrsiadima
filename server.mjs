@@ -102,6 +102,9 @@ app.post('/api/tinkoff-working', async (req, res) => {
     paymentData.Token = generateToken(paymentData);
 
     console.log('Отправляем в Тинькофф:', JSON.stringify(paymentData, null, 2));
+    console.log('=== ТЕСТ - ПРОВЕРКА ПОЛЯ TAXATION ===');
+    console.log('Taxation в paymentData:', paymentData.Taxation);
+    console.log('Taxation в Receipt:', paymentData.Receipt.Taxation);
 
     const response = await fetch(`${CONFIG.API_URL}/Init`, {
       method: 'POST',
