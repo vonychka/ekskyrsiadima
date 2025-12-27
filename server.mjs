@@ -22,7 +22,7 @@ function generateToken(data) {
   delete copy.Email;
   delete copy.Phone;
   delete copy.Description;
-  delete copy.OrderId;
+  // OrderId оставляем - он обязателен для токена!
 
   const tokenData = {
     ...copy,
