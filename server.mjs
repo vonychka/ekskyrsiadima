@@ -71,7 +71,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       Email: email,
       Phone: phone,
       EmailCompany: 'sokovdima3@gmail.com',
-      Taxation: 'USN',
+      Taxation: 'usn_income',
       FfdVersion: '1.05',
       Items: [{
         Name: cleanDescription.substring(0, 128),
