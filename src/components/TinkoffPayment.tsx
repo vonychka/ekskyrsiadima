@@ -88,7 +88,44 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
 
       if (data.Success) {
         if (data.PaymentURL) {
-          // Сохраняем данные для отправки чека после редиректа
+          // Отправляем данные клиента в Telegram перед редиректом
+          try {
+            const clientData = {
+              fullName: fullName,
+              phone: phone,
+              email: email,
+              tourTitle: description,
+              tourDate: new Date().toLocaleDateString('ru-RU'),
+              tourTime: 'Не указано',
+              numberOfPeople: 1,
+              selectedTariff: 'standard',
+              finalPrice: amount,
+              paymentId: data.PaymentId,
+              paymentMethod: 'Тинькофф'
+            };
+            
+            console.log('Отправка данных клиента в Telegram:', clientData);
+            
+            const telegramResponse = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/send-client-data', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(clientData),
+            });
+            
+            const telegramResult = await telegramResponse.json();
+            console.log('Ответ Telegram API:', telegramResult);
+            
+            if (!telegramResponse.ok) {
+              console.error('Ошибка отправки в Telegram:', telegramResult);
+            }
+          } catch (telegramError) {
+            console.error('Ошибка при отправке в Telegram:', telegramError);
+            // Не прерываем оплату если Telegram не сработал
+          }
+          
+          // Сохраняем данные для билета после редиректа
           const paymentData = {
             fullName: fullName,
             phone,
@@ -103,7 +140,6 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
             paymentMethod: 'Тинькофф'
           };
           
-          // Сохраняем в localStorage для отправки после возврата с платежной страницы
           localStorage.setItem('pendingTicketData', JSON.stringify(paymentData));
           
           window.location.href = data.PaymentURL;

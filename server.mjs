@@ -247,8 +247,75 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
   }
 });
 
+/* ================= CLIENT DATA ================= */
+app.post('/api/send-client-data', async (req, res) => {
+  try {
+    console.log('=== ОТПРАВКА ДАННЫХ КЛИЕНТА В TELEGRAM ===');
+    console.log('Client data:', req.body);
+    
+    const { fullName, email, phone, tourTitle, tourDate, tourTime, numberOfPeople, selectedTariff, finalPrice, paymentId, paymentMethod } = req.body;
+    
+    const message = `
+🎫 НОВЫЙ ЗАКАЗ ЭКСКУРСИИ
+
+👤 КЛИЕНТ:
+ФИО: ${fullName || 'Не указано'}
+Телефон: ${phone || 'Не указано'}
+Email: ${email || 'Не указано'}
+
+📍 ЭКСКУРСИЯ:
+Название: ${tourTitle || 'Не указано'}
+Дата: ${tourDate || 'Не указано'}
+Время: ${tourTime || 'Не указано'}
+Количество человек: ${numberOfPeople || 1}
+Тариф: ${selectedTariff || 'standard'}
+
+💰 ОПЛАТА:
+Стоимость: ${finalPrice || 0} ₽
+Способ: ${paymentMethod || 'Не указано'}
+ID платежа: ${paymentId || 'Не указано'}
+
+⏰ Время: ${new Date().toLocaleString('ru-RU')}
+🔗 Канал: https://t.me/agenDima
+    `.trim();
+
+    const botToken = '8209677930:AAFYQhWh_a4NvzRgnBjeJTO_Af5JkxWeauE';
+    const chatId = '1183482279'; // Личный чат с ботом
+    
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+    const response = await fetch(telegramUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+
+    const result = await response.json();
+    console.log('Ответ Telegram:', result);
+
+    if (response.ok && result.ok) {
+      console.log('✅ Данные клиента успешно отправлены в Telegram');
+      res.status(200).json({ success: true, message: 'Данные отправлены в Telegram' });
+    } else {
+      console.error('❌ Ошибка отправки в Telegram:', result);
+      res.status(500).json({ success: false, error: 'Ошибка отправки в Telegram' });
+    }
+
+  } catch (error) {
+    console.error('❌ Ошибка:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 /* ================= START ================= */
 app.listen(3000, () => {
   console.log('✅ Server started on port 3000');
   console.log('📡 Webhook endpoint: https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-webhook');
+  console.log('📨 Client data endpoint: https://nextjs-boilerplateuexkyesua.onrender.com/api/send-client-data');
 });
