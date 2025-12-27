@@ -9,7 +9,7 @@ const app = express();
 
 /* ================= CORS ================= */
 app.use(cors({
-  origin: ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima.ru/*'],
+  origin: ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima.ru/*', 'https://cv91330.tw1.ru', 'https://cv91330.tw1.ru/*'],
   methods: ['POST', 'GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
