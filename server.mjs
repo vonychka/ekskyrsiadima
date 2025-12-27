@@ -158,7 +158,7 @@ const sendWebhookToTelegram = async (webhookData) => {
     console.log('=== ОТПРАВКА ВЕБХУКА В TELEGRAM ===');
     
     const botToken = '8209677930:AAFYQhWh_a4NvzRgnBjeJTO_Af5JkxWeauE';
-    const chatId = '-1003165344788'; // ID канала @agenDima  
+    const chatId = '1183482279'; // Временный личный chat_id до добавления бота в канал  
     const message = `
 💰 УВЕДОМЛЕНИЕ ОБ ОПЛАТЕ ТИНЬКОФФ
 
