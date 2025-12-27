@@ -9,9 +9,10 @@ const app = express();
 
 /* ================= CORS ================= */
 app.use(cors({
-  origin: 'https://ekskyrsiadima.ru',
+  origin: ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima.ru/*'],
   methods: ['POST', 'GET', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
@@ -413,10 +414,11 @@ app.get('/api/tour-schedules/:tourId', async (req, res) => {
     
     // Возвращаем тестовые данные при ошибке Firebase
     console.log('Используем тестовые данные из-за ошибки Firebase');
+    const requestedTourId = req.params.tourId;
     const defaultSchedules = [
       {
         id: 's1',
-        tourId: tourId,
+        tourId: requestedTourId,
         date: '2025-12-28',
         time: '10:00',
         availableSpots: 20,
@@ -424,7 +426,7 @@ app.get('/api/tour-schedules/:tourId', async (req, res) => {
       },
       {
         id: 's2',
-        tourId: tourId,
+        tourId: requestedTourId,
         date: '2025-12-28',
         time: '14:00',
         availableSpots: 20,
