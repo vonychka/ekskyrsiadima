@@ -11,20 +11,38 @@ function generateToken(data) {
   const copy = { ...data };
   delete copy.Token;
 
-  const tokenString = Object.keys({
+  // Исключаем поля, которые не должны участвовать в токене
+  delete copy.Receipt;
+  delete copy.SuccessURL;
+  delete copy.FailURL;
+  delete copy.NotificationURL;
+
+  const tokenData = {
     ...copy,
     Password: CONFIG.PASSWORD
-  })
+  };
+
+  console.log('=== TOKEN GENERATION DEBUG ===');
+  console.log('Data for token:', JSON.stringify(tokenData, null, 2));
+
+  const tokenString = Object.keys(tokenData)
     .sort()
     .map(key => {
       if (key === 'Password') return CONFIG.PASSWORD;
-      return copy[key];
+      return tokenData[key];
     })
     .join('');
 
-  return createHash('sha256')
+  console.log('Token string:', tokenString);
+
+  const token = createHash('sha256')
     .update(tokenString)
     .digest('hex');
+
+  console.log('Generated token:', token);
+  console.log('=== END TOKEN DEBUG ===');
+
+  return token;
 }
 
 console.log('=== SERVER FILE DEBUG ===');
