@@ -71,7 +71,6 @@ app.post('/api/tinkoff-working', async (req, res) => {
     const receipt = {
       Email: email || 'noreply@example.com',
       Phone: phone ? phone.replace(/\D/g, '') : '70000000000',
-      EmailCompany: 'sokovdima3@gmail.com',
       Taxation: 'usn_income',
       FfdVersion: '1.05',
       Items: [{
@@ -98,6 +97,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId),
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
       NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
+      Taxation: 'usn_income',
       Receipt: receipt
     };
 
@@ -106,6 +106,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       paymentData.Description = `${fullName} - ${paymentData.Description}`;
     }
 
+    console.log('FIELDS FOR TOKEN:', Object.keys(paymentData).sort());
     paymentData.Token = generateToken(paymentData);
 
     console.log('Отправляем в Тинькофф:', JSON.stringify(paymentData, null, 2));
