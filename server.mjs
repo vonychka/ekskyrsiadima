@@ -32,8 +32,8 @@ function generateToken(data) {
   delete copy.SuccessURL;    // Удаляем URL поля
   delete copy.FailURL;       // Удаляем URL поля
   delete copy.NotificationURL; // Удаляем URL поля
-  delete copy.CustomerKey;    // Возможно не нужен
-  delete copy.Email;          // Возможно не нужен
+  delete copy.Email;          // Не нужно в токене
+  delete copy.Phone;          // Не нужно в токene
   
   console.log('After delete keys:', Object.keys(copy));
   
