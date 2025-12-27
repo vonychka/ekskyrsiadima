@@ -27,6 +27,11 @@ function generateToken(data) {
     .digest('hex');
 }
 
+console.log('=== SERVER FILE DEBUG ===');
+console.log('Running file:', __filename);
+console.log('Current working directory:', process.cwd());
+console.log('=== END DEBUG ===');
+
 const app = express();
 
 // Middleware
