@@ -112,6 +112,8 @@ app.post('/api/tinkoff-working', async (req, res) => {
       CustomerKey: String(orderId),
       PayType: 'O',
       Recurrent: 'N',
+      Email: email || 'noreply@example.com',
+      Phone: phone || '+70000000000',
       SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId),
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
       NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
