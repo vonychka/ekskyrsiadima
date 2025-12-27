@@ -152,7 +152,45 @@ app.post('/api/tinkoff-working', async (req, res) => {
   }
 });
 
+/* ================= WEBHOOK ================= */
+app.post('/api/tinkoff-webhook', async (req, res) => {
+  try {
+    console.log('=== TINKOFF WEBHOOK RECEIVED ===');
+    console.log('Headers:', req.headers);
+    console.log('Body:', req.body);
+    
+    // Проверка токена вебхука
+    const { Token, ...webhookData } = req.body;
+    if (Token) {
+      const expectedToken = generateToken(webhookData);
+      console.log('Webhook token:', Token);
+      console.log('Expected token:', expectedToken);
+      
+      if (Token !== expectedToken) {
+        console.log('❌ Invalid webhook token');
+        return res.status(400).send('Invalid token');
+      }
+    }
+    
+    // Обработка уведомления
+    if (req.body.Status === 'CONFIRMED' || req.body.Status === 'AUTHORIZED') {
+      console.log('✅ Payment confirmed:', req.body.PaymentId);
+      // Здесь можно добавить логику обработки успешной оплаты
+    } else if (req.body.Status === 'REJECTED' || req.body.Status === 'CANCELED') {
+      console.log('❌ Payment rejected:', req.body.PaymentId);
+    }
+    
+    // Ответ Тинькофф что вебхок принят
+    res.status(200).send('OK');
+    
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(500).send('Error');
+  }
+});
+
 /* ================= START ================= */
 app.listen(3000, () => {
   console.log('✅ Server started on port 3000');
+  console.log('📡 Webhook endpoint: https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-webhook');
 });
