@@ -1,7 +1,15 @@
 import express from 'express';
+import cors from 'cors';
 import { createHash } from 'crypto';
 
 const app = express();
+
+app.use(cors({
+  origin: 'https://ekskyrsiadima.ru',
+  methods: ['POST', 'GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+}));
+
 app.use(express.json());
 
 const CONFIG = {
