@@ -21,6 +21,7 @@ function generateToken(data) {
   delete copy.Recurrent;
   delete copy.Email;
   delete copy.Phone;
+  delete copy.Description;
 
   const tokenData = {
     ...copy,
