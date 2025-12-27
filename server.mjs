@@ -16,6 +16,11 @@ function generateToken(data) {
   delete copy.SuccessURL;
   delete copy.FailURL;
   delete copy.NotificationURL;
+  delete copy.CustomerKey;
+  delete copy.PayType;
+  delete copy.Recurrent;
+  delete copy.Email;
+  delete copy.Phone;
 
   const tokenData = {
     ...copy,
