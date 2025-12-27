@@ -48,7 +48,8 @@ function generateToken(data) {
   console.log('Sorted keys:', sortedKeys);
   
   const tokenString = sortedKeys.map(key => {
-    const value = key === 'Password' ? CONFIG.PASSWORD : tokenData[key];
+    let value = key === 'Password' ? CONFIG.PASSWORD : tokenData[key];
+    if (key === 'Amount') value = String(value); // Amount как строка
     console.log(`Key: ${key}, Value: ${value}, Type: ${typeof value}`);
     return String(value);
   }).join('');
