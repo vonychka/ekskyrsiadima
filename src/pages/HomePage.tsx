@@ -6,6 +6,7 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import { WebhookTestButton } from '../components/WebhookTestButton';
 import { MapPin, Award, Users, Clock } from 'lucide-react';
 import { getNearestTourSpots } from '../data/tours';
+import { Tour } from '../types';
 
 const HomePage: React.FC = () => {
   const { tours, schedules, loading } = useOptimizedTours();
