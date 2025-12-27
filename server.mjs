@@ -1,41 +1,139 @@
-impr{caeHah} fmimprexpessfom 'xpssdtoy= { dt;
-delete coy.TokenoknStingky{..cp
- Psswd: CONFIG.PASSWORD
-  }sot.mp(>ifkey=='Pwreturn    rucpy[key];
-  })
-    .j(''kentrgconst app = express();
+import { createHash } from 'crypto';
+import express from 'express';
 
-Middleware
-app.use(express.json());
-
-//app.((q, , next=> hhttps://ekskyrsiadima.ruhhrunstusx}APIni
-posff-wkreq, res===ЗАПРОСНАОПЛАТУТИНЬКОФФ=='Bq.boy
-, orderId, fullNameq.boyreturnstus).json({ 
-       error:Missig required filds: amou, ordrId,descri 
-     }
-
-constcleanDescription=Sting(dcription)replac(/tour-\+/g, '').replace/-\d+/g, '')m);   
-constreceipt={
-EmailemailPhone:phone,
-EmailCopany: 'okovdim3@mail.com',
-  Taxtin: 's'
-     FfV: '1.05,Items:[{
-Name:cleanDescription.substring(0,128),
- Pic: Mah.oud(amount*100),
-Quantity: 1,Amut:Mh.ond(*100)
-       Tx:'n'PaymentMethod:'full_prepayment',
-PaymntObjet: 'srvce'}]
+const CONFIG = {
+  TERMINAL_KEY: '1766479140318',
+  PASSWORD: 's9R^$NsmYPytIY#_',
+  API_URL: 'https://securepay.tinkoff.ru/v2'
 };
 
-    String()cleanD CustomerKey:String(orderId),
-Rrnt:'N',Email:email,Phone:phone?phrepace(/\D/, ') : undfied,
-      SuccessURL: 'htps://ekskyrsiaim.u/icet?success=tru&Id=' + Sring(orderId,FailURL:'https:ekskyrsiadima.ru/payment-error',NotifiatiURL:prcss.ev.RENDER_EXTERNAL_URL+'/pi/-webho',Receipt:receipt};
+function generateToken(data) {
+  const copy = { ...data };
+  delete copy.Token;
 
-AddfullNametodesriptiafte tokn gnerionif(fullName){
-.Dscripi=`${fullNam}-$payentDat.Descrpton`;}
+  const tokenString = Object.keys({
+    ...copy,
+    Password: CONFIG.PASSWORD
+  })
+    .sort()
+    .map(key => {
+      if (key === 'Password') return CONFIG.PASSWORD;
+      return copy[key];
+    })
+    .join('');
 
-paymentDataTke=gateTokn(ymntataОтправляемвТинькоффpaymnrpaymnrОтветТинькоффresul.Succtu(200).js(rl}else{stus4).}
+  return createHash('sha256')
+    .update(tokenString)
+    .digest('hex');
+}
 
-Ошибкаstus).//Helchk edpint
-appgt/(qr=>{
-jo statusok TnkffAPISvuntitmpew Date().tISOStrg()0appServerrug prt${R}`
+const app = express();
+
+// Middleware
+app.use(express.json());
+
+// CORS headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://ekskyrsiadima.ru');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
+// API endpoint
+app.post('/api/tinkoff-working', async (req, res) => {
+  try {
+    console.log('=== ЗАПРОС НА ОПЛАТУ ТИНЬКОФФ ===');
+    console.log('Body:', req.body);
+
+    const { amount, description, orderId, fullName, email, phone } = req.body;
+    
+    if (!amount || !orderId || !description) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: amount, orderId, description' 
+      });
+    }
+
+    const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
+    
+    const receipt = {
+      Email: email,
+      Phone: phone,
+      EmailCompany: 'sokovdima3@gmail.com',
+      Taxation: 'usn',
+      FfdVersion: '1.05',
+      Items: [{
+        Name: cleanDescription.substring(0, 128),
+        Price: Math.round(amount * 100),
+        Quantity: 1,
+        Amount: Math.round(amount * 100),
+        Tax: 'none',
+        PaymentMethod: 'full_prepayment',
+        PaymentObject: 'service'
+      }]
+    };
+
+    const paymentData = {
+      TerminalKey: CONFIG.TERMINAL_KEY,
+      Amount: Math.round(amount * 100),
+      OrderId: String(orderId),
+      Description: cleanDescription.substring(0, 250),
+      CustomerKey: String(orderId),
+      PayType: 'O',
+      Recurrent: 'N',
+      Email: email,
+      Phone: phone ? phone.replace(/\D/g, '') : undefined,
+      SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId),
+      FailURL: 'https://ekskyrsiadima.ru/payment-error',
+      NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
+      Receipt: receipt
+    };
+
+    // Add fullName to description after token generation
+    if (fullName) {
+      paymentData.Description = `${fullName} - ${paymentData.Description}`;
+    }
+
+    paymentData.Token = generateToken(paymentData);
+
+    console.log('Отправляем в Тинькофф:', JSON.stringify(paymentData, null, 2));
+
+    const response = await fetch(`${CONFIG.API_URL}/Init`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(paymentData)
+    });
+
+    const result = await response.json();
+    console.log('Ответ Тинькофф:', JSON.stringify(result, null, 2));
+
+    if (result.Success) {
+      res.status(200).json(result);
+    } else {
+      res.status(400).json(result);
+    }
+
+  } catch (error) {
+    console.error('Ошибка:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Tinkoff API Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
