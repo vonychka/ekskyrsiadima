@@ -65,7 +65,6 @@ app.post('/api/tinkoff-working', async (req, res) => {
       Email: email,
       Phone: phone,
       EmailCompany: 'sokovdima3@gmail.com',
-      Taxation: 'USN',
       FfdVersion: '1.05',
       Items: [{
         Name: cleanDescription.substring(0, 128),
@@ -91,6 +90,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId),
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
       NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
+      Taxation: 'USN',
       Receipt: receipt
     };
 
