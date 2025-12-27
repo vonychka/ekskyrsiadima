@@ -1,5 +1,8 @@
-import { createHash } from 'crypto';
 import express from 'express';
+import { createHash } from 'crypto';
+
+const app = express();
+app.use(express.json());
 
 const CONFIG = {
   TERMINAL_KEY: '1766479140318',
@@ -7,112 +10,73 @@ const CONFIG = {
   API_URL: 'https://securepay.tinkoff.ru/v2'
 };
 
+/**
+ * Генерация Token по документации Тинькофф
+ * Удаляем ТОЛЬКО Token и Receipt
+ */
 function generateToken(data) {
   const copy = { ...data };
-
   delete copy.Token;
-  delete copy.Receipt; // ← ТОЛЬКО Receipt удаляем
+  delete copy.Receipt;
 
-  const tokenString = Object.keys({
-    ...copy,
-    Password: CONFIG.PASSWORD
-  })
+  const tokenString = Object.keys({ ...copy, Password: CONFIG.PASSWORD })
     .sort()
-    .map(key => String(key === 'Password' ? CONFIG.PASSWORD : copy[key]))
+    .map(key => (key === 'Password' ? CONFIG.PASSWORD : String(copy[key])))
     .join('');
 
-  return createHash('sha256')
-    .update(tokenString)
-    .digest('hex');
+  return createHash('sha256').update(tokenString).digest('hex');
 }
 
-console.log('=== SERVER FILE DEBUG ===');
-console.log('Running server.mjs - ES module version');
-console.log('Current working directory:', process.cwd());
-console.log('Node version:', process.version);
-console.log('TerminalKey:', CONFIG.TERMINAL_KEY);
-console.log('Password exists:', !!CONFIG.PASSWORD);
-console.log('=== END DEBUG ===');
-
-const app = express();
-
-// Middleware
-app.use(express.json());
-
-// CORS headers
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://ekskyrsiadima.ru');
-  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  next();
-});
-
-// API endpoint
 app.post('/api/tinkoff-working', async (req, res) => {
   try {
-    console.log('=== ЗАПРОС НА ОПЛАТУ ТИНЬКОФФ ===');
-    console.log('Body:', req.body);
-
     const { amount, description, orderId, fullName, email, phone } = req.body;
-    
-    if (!amount || !orderId || !description) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: amount, orderId, description' 
-      });
+
+    if (!amount || !orderId || !description || !email || !phone) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const cleanDescription = String(description).replace(/tour-\d+/g, '').replace(/-\d+/g, '').trim();
-    
+    const cleanPhone = phone.replace(/\D/g, '');
+    const cleanDescription = `${fullName} - ${description}`.substring(0, 250);
+    const amountKopeks = Math.round(Number(amount) * 100);
+
+    // ЧЕК (Receipt)
     const receipt = {
-      Email: email || 'noreply@example.com',
-      Phone: phone ? phone.replace(/\D/g, '') : '70000000000',
+      Email: email,
+      Phone: cleanPhone,
       Taxation: 'usn_income',
       FfdVersion: '1.05',
-      Items: [{
-        Name: cleanDescription.substring(0, 128),
-        Price: Math.round(amount * 100),
-        Quantity: 1,
-        Amount: Math.round(amount * 100),
-        Tax: 'none',
-        PaymentMethod: 'full_prepayment',
-        PaymentObject: 'service'
-      }]
+      Items: [
+        {
+          Name: cleanDescription.substring(0, 128),
+          Price: amountKopeks,
+          Quantity: 1,
+          Amount: amountKopeks,
+          Tax: 'none',
+          PaymentMethod: 'full_prepayment',
+          PaymentObject: 'service'
+        }
+      ]
     };
 
+    // ДАННЫЕ ПЛАТЕЖА
     const paymentData = {
       TerminalKey: CONFIG.TERMINAL_KEY,
-      Amount: Math.round(amount * 100),
+      Amount: amountKopeks,
       OrderId: String(orderId),
-      Description: cleanDescription.substring(0, 250),
-      CustomerKey: String(orderId),
-      PayType: 'O',
-      Recurrent: 'N',
-      Email: email || 'noreply@example.com',
-      Phone: phone ? phone.replace(/\D/g, '') : '70000000000',
-      SuccessURL: 'https://ekskyrsiadima.ru/ticket?success=true&paymentId=' + String(orderId),
+      Description: cleanDescription,
+      SuccessURL: `https://ekskyrsiadima.ru/ticket?success=true&orderId=${orderId}`,
       FailURL: 'https://ekskyrsiadima.ru/payment-error',
       NotificationURL: process.env.RENDER_EXTERNAL_URL + '/api/tinkoff-webhook',
+      CustomerKey: email,
+      Email: email,
+      Phone: cleanPhone,
       Taxation: 'usn_income',
       Receipt: receipt
     };
 
-    // Add fullName to description BEFORE token generation
-    if (fullName) {
-      paymentData.Description = `${fullName} - ${paymentData.Description}`;
-    }
-
-    console.log('FIELDS FOR TOKEN:', Object.keys(paymentData).sort());
     paymentData.Token = generateToken(paymentData);
 
-    console.log('Отправляем в Тинькофф:', JSON.stringify(paymentData, null, 2));
-    console.log('=== ТЕСТ - ПРОВЕРКА ПОЛЯ TAXATION ===');
-    console.log('Taxation в paymentData:', paymentData.Taxation);
-    console.log('Taxation в Receipt:', paymentData.Receipt.Taxation);
+    console.log('SEND TO TINKOFF:', paymentData);
 
     const response = await fetch(`${CONFIG.API_URL}/Init`, {
       method: 'POST',
@@ -121,30 +85,16 @@ app.post('/api/tinkoff-working', async (req, res) => {
     });
 
     const result = await response.json();
-    console.log('Ответ Тинькофф:', JSON.stringify(result, null, 2));
+    console.log('TINKOFF RESPONSE:', result);
 
-    if (result.Success) {
-      res.status(200).json(result);
-    } else {
-      res.status(400).json(result);
-    }
+    res.status(result.Success ? 200 : 400).json(result);
 
-  } catch (error) {
-    console.error('Ошибка:', error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Health check endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'Tinkoff API Server is running',
-    timestamp: new Date().toISOString()
-  });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(3000, () => {
+  console.log('Server started on port 3000');
 });
