@@ -26,11 +26,14 @@ const CONFIG = {
 const generateToken = (data) => {
   console.log('=== TOKEN GENERATION START ===');
   
-  // Create a copy of data and remove Receipt, DATA, and Token
+  // Create a copy of data for token generation
   const tokenData = { ...data };
   delete tokenData.Receipt;
   delete tokenData.DATA;
   delete tokenData.Token;
+  delete tokenData.email; // Убираем email из токена
+  delete tokenData.phone; // Убираем phone из токена
+  delete tokenData.fullName; // Убираем fullName из токена
   
   console.log('Original keys:', Object.keys(data));
   console.log('After delete keys:', Object.keys(tokenData));
@@ -102,6 +105,11 @@ app.post('/api/tinkoff-working', async (req, res) => {
       }]
     };
 
+    // Add customer info to request (but not to token)
+    requestData.fullName = req.body.fullName;
+    requestData.email = req.body.email;
+    requestData.phone = req.body.phone;
+    
     // Add DATA with customer information
     requestData.DATA = {
       Name: req.body.fullName,
