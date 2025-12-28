@@ -3,7 +3,7 @@ import cors from 'cors';
 import { createHash } from 'crypto';
 import TinkoffMerchantAPI from 'tinkoff-merchant-api';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, get, set, update } from 'firebase/database';
+import { getDatabase, ref, get, set, update, remove, push } from 'firebase/database';
 
 const app = express();
 
@@ -443,9 +443,9 @@ app.get('/api/tours', async (req, res) => {
     
     if (snapshot.exists()) {
       const tours = snapshot.val();
-      const toursArray = Object.values(tours).map(tour => ({
-        ...tour,
-        id: Object.keys(tours).find(key => tours[key] === tour)
+      const toursArray = Object.keys(tours).map(key => ({
+        ...tours[key],
+        id: key
       }));
       console.log(`Найдено туров: ${toursArray.length}`);
       res.json(toursArray);
@@ -455,6 +455,96 @@ app.get('/api/tours', async (req, res) => {
     }
   } catch (error) {
     console.error('Ошибка получения туров:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+/* ================= ADMIN API ================= */
+// Получение всех расписаний для админки
+app.get('/api/admin/schedules', async (req, res) => {
+  try {
+    console.log('Получение всех расписаний для админки');
+    
+    const schedulesRef = ref(database, 'schedules');
+    const snapshot = await get(schedulesRef);
+    
+    if (snapshot.exists()) {
+      const schedules = snapshot.val();
+      const schedulesArray = Object.keys(schedules).map(key => ({
+        ...schedules[key],
+        id: key
+      }));
+      console.log(`Найдено расписаний: ${schedulesArray.length}`);
+      res.json(schedulesArray);
+    } else {
+      console.log('Расписания не найдены, возвращаем пустой массив');
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('Ошибка получения расписаний:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Создание нового расписания
+app.post('/api/admin/schedules', async (req, res) => {
+  try {
+    console.log('Создание нового расписания:', req.body);
+    
+    const newSchedule = {
+      ...req.body,
+      bookedSpots: 0
+    };
+    
+    const schedulesRef = ref(database, 'schedules');
+    const newScheduleRef = push(schedulesRef);
+    await set(newScheduleRef, {
+      ...newSchedule,
+      id: newScheduleRef.key
+    });
+    
+    console.log(`Расписание создано с ID: ${newScheduleRef.key}`);
+    res.json({
+      success: true,
+      id: newScheduleRef.key,
+      ...newSchedule
+    });
+  } catch (error) {
+    console.error('Ошибка создания расписания:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Обновление расписания
+app.put('/api/admin/schedules/:scheduleId', async (req, res) => {
+  try {
+    const { scheduleId } = req.params;
+    console.log(`Обновление расписания ${scheduleId}:`, req.body);
+    
+    const scheduleRef = ref(database, `schedules/${scheduleId}`);
+    await update(scheduleRef, req.body);
+    
+    console.log(`Расписание ${scheduleId} обновлено`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Ошибка обновления расписания:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Удаление расписания
+app.delete('/api/admin/schedules/:scheduleId', async (req, res) => {
+  try {
+    const { scheduleId } = req.params;
+    console.log(`Удаление расписания ${scheduleId}`);
+    
+    const scheduleRef = ref(database, `schedules/${scheduleId}`);
+    await remove(scheduleRef);
+    
+    console.log(`Расписание ${scheduleId} удалено`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Ошибка удаления расписания:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
