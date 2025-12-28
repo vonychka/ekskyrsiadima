@@ -22,14 +22,31 @@ export const ScheduleBookingTestButton: React.FC = () => {
   const [selectedTourId, setSelectedTourId] = useState<string>('');
   const [selectedScheduleId, setSelectedScheduleId] = useState<string>('');
 
-  // Загружаем доступные туры
+  // Загружаем реальные туры из Firebase
   useEffect(() => {
-    const mockTours: Tour[] = [
-      { id: '1', title: 'Историческая прогулка по Нижнему Новгороду' },
-      { id: '2', title: 'Вечерняя прогулка по набережной Волги' },
-      { id: '3', title: 'Архитектурное наследие Нижнего Новгорода' }
-    ];
-    setTours(mockTours);
+    const loadTours = async () => {
+      try {
+        const response = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/tours');
+        if (response.ok) {
+          const toursData = await response.json();
+          setTours(toursData);
+          console.log('Загружены туры из Firebase:', toursData.length);
+        } else {
+          throw new Error('Ошибка загрузки туров');
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки туров:', error);
+        // Fallback на тестовые данные
+        const mockTours: Tour[] = [
+          { id: '1', title: 'Историческая прогулка по Нижнему Новгороду' },
+          { id: '2', title: 'Вечерняя прогулка по набережной Волги' },
+          { id: '3', title: 'Архитектурное наследие Нижнего Новгорода' }
+        ];
+        setTours(mockTours);
+      }
+    };
+
+    loadTours();
   }, []);
 
   // Загружаем расписания при выборе тура

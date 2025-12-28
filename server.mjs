@@ -258,72 +258,71 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
   }
 });
 
-/* ================= TOUR SCHEDULES (LOCAL STORAGE) ================= */
-// Локальное хранилище расписаний (без Firebase)
-let localSchedules = [
-  {
-    id: 's1',
-    tourId: '1',
-    date: '2025-12-28',
-    time: '10:00',
-    availableSpots: 20,
-    maxSpots: 20,
-    bookedSpots: 0
-  },
-  {
-    id: 's2',
-    tourId: '1',
-    date: '2025-12-28',
-    time: '14:00',
-    availableSpots: 20,
-    maxSpots: 20,
-    bookedSpots: 0
-  },
-  {
-    id: 's3',
-    tourId: '1',
-    date: '2025-12-29',
-    time: '10:00',
-    availableSpots: 20,
-    maxSpots: 20,
-    bookedSpots: 0
-  },
-  {
-    id: 's4',
-    tourId: '2',
-    date: '2025-12-28',
-    time: '18:00',
-    availableSpots: 15,
-    maxSpots: 15,
-    bookedSpots: 0
-  },
-  {
-    id: 's5',
-    tourId: '3',
-    date: '2025-12-28',
-    time: '11:00',
-    availableSpots: 25,
-    maxSpots: 25,
-    bookedSpots: 0
+/* ================= TOURS AND SCHEDULES FROM FIREBASE ================= */
+// Получаем туры из Firebase (как в админке)
+const getToursFromFirebase = async () => {
+  try {
+    const toursRef = ref(database, 'tours');
+    const snapshot = await get(toursRef);
+    
+    if (snapshot.exists()) {
+      const tours = snapshot.val();
+      return Object.values(tours).map(tour => ({
+        ...tour,
+        id: tour.id || Object.keys(tours).find(key => tours[key] === tour)
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Ошибка получения туров из Firebase:', error);
+    return [];
   }
-];
-
-// Получаем расписания (без Firebase)
-const getAdminSchedules = async () => {
-  console.log('Используем локальные расписания:', localSchedules.length);
-  return localSchedules;
 };
 
+// Получаем расписания из Firebase (как в админке)
+const getSchedulesFromFirebase = async () => {
+  try {
+    const schedulesRef = ref(database, 'schedules');
+    const snapshot = await get(schedulesRef);
+    
+    if (snapshot.exists()) {
+      const schedules = snapshot.val();
+      return Object.values(schedules).map(schedule => ({
+        ...schedule,
+        id: schedule.id || Object.keys(schedules).find(key => schedules[key] === schedule)
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Ошибка получения расписаний из Firebase:', error);
+    return [];
+  }
+};
+
+// API для получения всех туров (как в админке)
+app.get('/api/tours', async (req, res) => {
+  try {
+    console.log('Получение списка туров из Firebase');
+    const tours = await getToursFromFirebase();
+    console.log(`Получено туров: ${tours.length}`);
+    res.json(tours);
+  } catch (error) {
+    console.error('Ошибка получения туров:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// API для получения расписаний тура (как в админке)
 app.get('/api/tour-schedules/:tourId', async (req, res) => {
   try {
     const { tourId } = req.params;
     console.log(`Получение расписаний для тура: ${tourId}`);
     
-    // Получаем локальные расписания
-    const adminSchedules = await getAdminSchedules();
+    // Получаем расписания из Firebase
+    const schedules = await getSchedulesFromFirebase();
     
     // Фильтруем расписания для конкретного тура
-    const tourSchedules = adminSchedules.filter(schedule => schedule.tourId === tourId);
+    const tourSchedules = schedules.filter(schedule => schedule.tourId === tourId);
     
     // Фильтруем прошедшие даты
     const now = new Date();
@@ -364,37 +363,41 @@ app.post('/api/book-schedule', async (req, res) => {
     
     console.log(`Попытка бронирования ${numberOfPeople} мест для расписания ${scheduleId}`);
     
-    // Находим расписание в локальных данных
-    const adminSchedules = await getAdminSchedules();
-    const schedule = adminSchedules.find(s => s.id === scheduleId);
+    // Находим расписание в Firebase
+    const schedules = await getSchedulesFromFirebase();
+    const schedule = schedules.find(s => s.id === scheduleId);
     
     if (!schedule) {
       return res.status(404).json({ error: 'Расписание не найдено' });
     }
     
-    if (schedule.availableSpots < numberOfPeople) {
+    // Проверяем доступность мест
+    const currentAvailableSpots = schedule.maxSpots - (schedule.bookedSpots || 0);
+    if (currentAvailableSpots < numberOfPeople) {
       return res.status(400).json({ 
         error: 'Недостаточно мест',
-        availableSpots: schedule.availableSpots 
+        availableSpots: currentAvailableSpots 
       });
     }
     
-    // Бронируем места в локальном хранилище
-    const scheduleIndex = localSchedules.findIndex(s => s.id === scheduleId);
-    if (scheduleIndex !== -1) {
-      localSchedules[scheduleIndex].availableSpots -= numberOfPeople;
-      localSchedules[scheduleIndex].bookedSpots += numberOfPeople;
-    }
+    // Обновляем количество забронированных мест в Firebase
+    const scheduleRef = ref(database, `schedules/${scheduleId}`);
+    const updatedBookedSpots = (schedule.bookedSpots || 0) + numberOfPeople;
     
-    console.log(`Забронировано ${numberOfPeople} мест для расписания ${scheduleId}. Осталось: ${localSchedules[scheduleIndex].availableSpots}`);
+    await update(scheduleRef, {
+      bookedSpots: updatedBookedSpots,
+      availableSpots: schedule.maxSpots - updatedBookedSpots
+    });
+    
+    console.log(`Забронировано ${numberOfPeople} мест для расписания ${scheduleId}. Всего забронировано: ${updatedBookedSpots}`);
     
     res.json({
       success: true,
       scheduleId: scheduleId,
       bookedSlots: numberOfPeople,
-      availableSpots: localSchedules[scheduleIndex].availableSpots,
+      availableSpots: schedule.maxSpots - updatedBookedSpots,
       maxSpots: schedule.maxSpots,
-      source: 'local'
+      source: 'firebase'
     });
   } catch (error) {
     console.error('Ошибка бронирования расписания:', error);
