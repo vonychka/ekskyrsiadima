@@ -225,6 +225,11 @@ export const useTours = () => {
 
     try {
       await set(ref(database, `tours/${newTour.id}`), newTour);
+      
+      // Обновляем локальное состояние
+      setTours(prev => [...prev, newTour]);
+      console.log('Локальное состояние туров обновлено после добавления');
+      
       return newTour;
     } catch (error) {
       console.error('Error adding tour:', error);
@@ -283,6 +288,12 @@ export const useTours = () => {
         await Promise.all(schedulePromises);
         console.log('All related schedules removed');
       }
+      
+      // Обновляем локальное состояние
+      setTours(prev => prev.filter(tour => tour.id !== tourId));
+      setSchedules(prev => prev.filter(schedule => schedule.tourId !== tourId));
+      console.log('Локальное состояние тура и связанных расписаний обновлено');
+      
       console.log('deleteTour completed successfully');
     } catch (error) {
       console.error('Error in deleteTour:', error);
@@ -341,6 +352,12 @@ const deleteSchedule = useCallback(async (scheduleId: string, _isUserAuthenticat
         availableSpots: availableSpots
       });
       console.log('Schedule spots updated in Firebase successfully');
+      
+      // Обновляем локальное состояние
+      setSchedules(prev => prev.map(schedule => 
+        schedule.id === scheduleId ? { ...schedule, availableSpots } : schedule
+      ));
+      console.log('Локальное состояние мест расписания обновлено');
     } catch (error) {
       console.error('Error in updateScheduleSpots:', error);
       setError('Ошибка обновления мест в расписании');
@@ -362,6 +379,12 @@ const deleteSchedule = useCallback(async (scheduleId: string, _isUserAuthenticat
       
       await update(ref(database, `schedules/${scheduleId}`), updateData);
       console.log('Schedule spots manually updated in Firebase successfully');
+      
+      // Обновляем локальное состояние
+      setSchedules(prev => prev.map(schedule => 
+        schedule.id === scheduleId ? { ...schedule, ...updateData } : schedule
+      ));
+      console.log('Локальное состояние ручного обновления расписания обновлено');
     } catch (error) {
       console.error('Error in updateScheduleSpotsManual:', error);
       setError('Ошибка ручного обновления мест в расписании');
@@ -375,6 +398,12 @@ const deleteSchedule = useCallback(async (scheduleId: string, _isUserAuthenticat
       console.log('Attempting to update schedule in Firebase...');
       await update(ref(database, `schedules/${scheduleId}`), updateData);
       console.log('Schedule updated in Firebase successfully');
+      
+      // Обновляем локальное состояние
+      setSchedules(prev => prev.map(schedule => 
+        schedule.id === scheduleId ? { ...schedule, ...updateData } : schedule
+      ));
+      console.log('Локальное состояние расписания обновлено');
     } catch (error) {
       console.error('Error in updateSchedule:', error);
       setError('Ошибка обновления расписания');
