@@ -174,6 +174,20 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
   }
 });
 
+/* ================= TOUR SCHEDULES ================= */
+app.get('/api/tour-schedules/:tourId', (req, res) => {
+  try {
+    const { tourId } = req.params;
+    console.log(`Получение расписаний для тура: ${tourId}`);
+    
+    // Возвращаем пустые расписания - больше не используем систему бронирования по времени
+    res.json([]);
+  } catch (error) {
+    console.error('Ошибка получения расписаний:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
 /* ================= SIMPLE BOOKING ================= */
 app.post('/api/book-simple', async (req, res) => {
   try {
@@ -257,6 +271,66 @@ ID платежа: ${paymentId}
       details: error.message 
     });
   }
+});
+
+/* ================= ADMIN API (WITHOUT FIREBASE) ================= */
+// Получение всех туров для админки
+app.get('/api/admin/tours', (req, res) => {
+  const tours = [
+    {
+      id: '1757526403608',
+      title: 'Боярская экскурсия',
+      description: 'Увлекательная экскурсия по Боярке',
+      duration: '2 часа',
+      pricing: {
+        standard: 1000,
+        child: 500,
+        family: 2500
+      },
+      image: '/boyarka.jpg'
+    },
+    {
+      id: '1758190733023',
+      title: 'Скоро появится',
+      description: 'Новая экскурсия в разработке',
+      duration: '3 часа',
+      pricing: {
+        standard: 1500,
+        child: 750,
+        family: 3500
+      },
+      image: '/coming-soon.jpg'
+    }
+  ];
+  
+  res.json(tours);
+});
+
+// Получение всех расписаний для админки (пустые)
+app.get('/api/admin/schedules', (req, res) => {
+  res.json([]);
+});
+
+// Создание нового расписания (заглушка)
+app.post('/api/admin/schedules', (req, res) => {
+  console.log('Создание расписания (заглушка):', req.body);
+  res.json({
+    success: true,
+    id: Date.now().toString(),
+    ...req.body
+  });
+});
+
+// Обновление расписания (заглушка)
+app.put('/api/admin/schedules/:scheduleId', (req, res) => {
+  console.log('Обновление расписания (заглушка):', req.params.scheduleId, req.body);
+  res.json({ success: true });
+});
+
+// Удаление расписания (заглушка)
+app.delete('/api/admin/schedules/:scheduleId', (req, res) => {
+  console.log('Удаление расписания (заглушка):', req.params.scheduleId);
+  res.json({ success: true });
 });
 
 /* ================= SIMPLE TOURS API ================= */
