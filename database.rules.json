@@ -2,7 +2,7 @@
   "rules": {
     "tours": {
       ".read": true,
-      ".write": "auth != null",
+      ".write": true, // Разрешаем запись для сервера
       "$tourId": {
         ".validate": "newData.hasChildren(['id', 'title', 'description', 'duration', 'pricing'])",
         "pricing": {
@@ -24,23 +24,28 @@
     },
     "schedules": {
       ".read": true,
-      ".write": "auth != null",
+      ".write": true, // Разрешаем запись для сервера
       "$scheduleId": {
-        ".validate": "newData.hasChildren(['id', 'tourId', 'date', 'time', 'availableSpots'])",
+        ".validate": "newData.hasChildren(['id', 'tourId', 'date', 'time', 'availableSpots', 'maxSpots', 'bookedSpots'])",
         "availableSpots": { 
+          ".validate": "newData.isNumber() && newData.val() >= 0" 
+        },
+        "maxSpots": { 
+          ".validate": "newData.isNumber() && newData.val() >= 0" 
+        },
+        "bookedSpots": { 
           ".validate": "newData.isNumber() && newData.val() >= 0" 
         },
         "tourId": { ".validate": "newData.isString()" },
         "date": { ".validate": "newData.isString()" },
         "time": { ".validate": "newData.isString()" },
         ".read": true,
-        ".write": "auth != null && (!newData.exists() || (newData.exists() && newData.hasChildren(['id', 'tourId', 'date', 'time', 'availableSpots'])))",
-        ".validate": "newData.hasChildren(['id', 'tourId', 'date', 'time', 'availableSpots']) || !newData.exists()"
+        ".write": true // Разрешаем запись для сервера
       }
     },
     "promoCodes": {
       ".read": true,
-      ".write": "auth != null",
+      ".write": true, // Разрешаем запись для сервера
       "$promoId": {
         ".validate": "newData.hasChildren(['code', 'discountType', 'discountValue', 'maxUses', 'currentUses'])",
         "code": { ".validate": "newData.isString()" },
