@@ -17,7 +17,7 @@ import {
 const firebaseConfig = {
   apiKey: "AIzaSyBE-bcqM7DM_zV8xivFKKbrSAHifIWYgps",
   authDomain: "exursional.firebaseapp.com",
-  databaseURL: "https://exursional-default-rtdb.firebaseio.com",
+  databaseURL: "https://exursional-default-rtdb.firebaseio.com/",
   projectId: "exursional",
   storageBucket: "exursional.firebasestorage.app",
   messagingSenderId: "770008017138",
