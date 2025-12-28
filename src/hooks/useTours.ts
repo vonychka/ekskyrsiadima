@@ -323,6 +323,10 @@ const deleteSchedule = useCallback(async (scheduleId: string, _isUserAuthenticat
     const scheduleRef = ref(database, `schedules/${scheduleId}`);
     await remove(scheduleRef);
     console.log('Расписание успешно удалено');
+    
+    // Обновляем локальное состояние
+    setSchedules(prev => prev.filter(schedule => schedule.id !== scheduleId));
+    console.log('Локальное состояние обновлено');
   } catch (error) {
     console.error('Ошибка при удалении расписания:', error);
     throw error;
