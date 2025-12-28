@@ -120,8 +120,8 @@ export const useTours = () => {
         }));
         
         const schedulesData = schedulesSnapshot.exists() 
-          ? Object.values(schedulesSnapshot.val()) 
-          : [];
+          ? schedulesSnapshot.val() as any
+          : {};
         const schedulesArray = Object.keys(schedulesData).map(key => ({
           ...schedulesData[key] as any,
           id: key
