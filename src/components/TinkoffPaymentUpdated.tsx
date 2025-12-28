@@ -40,9 +40,9 @@ export const TinkoffPaymentUpdated: React.FC<TinkoffPaymentProps> = ({
           amount,
           orderId,
           description,
-          email,
-          phone,
-          customerKey: email || orderId
+          email: email || '',
+          phone: phone || '',
+          customerKey: (email && email.trim()) ? email : orderId
         }),
       });
 

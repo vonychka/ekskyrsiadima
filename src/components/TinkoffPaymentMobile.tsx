@@ -43,9 +43,9 @@ const TinkoffPaymentMobile: React.FC<TinkoffPaymentMobileProps> = ({
           amount,
           orderId,
           description,
-          email,
-          phone,
-          customerKey: email || orderId
+          email: email || '',
+          phone: phone || '',
+          customerKey: (email && email.trim()) ? email : orderId
         }),
       });
 

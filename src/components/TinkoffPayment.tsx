@@ -5,9 +5,9 @@ interface TinkoffPaymentProps {
   amount: number;
   orderId: string;
   description: string;
-  fullName: string;
-  email: string;
-  phone: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
   onSuccess?: (paymentUrl: string) => void;
   onError?: (error: string) => void;
   className?: string;
@@ -17,9 +17,9 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
   amount,
   orderId,
   description,
-  fullName,
-  email,
-  phone,
+  fullName = '',
+  email = '',
+  phone = '',
   onSuccess,
   onError,
   className = ''
@@ -86,9 +86,9 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
           amount,
           orderId,
           description,
-          email,
-          phone,
-          customerKey: email || orderId
+          email: email || '',
+          phone: phone || '',
+          customerKey: (email && email.trim()) ? email : orderId
         }),
       });
 
