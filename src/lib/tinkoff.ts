@@ -68,30 +68,48 @@ export interface TinkoffResponse {
 }
 
 /**
- * Генерация токена для Тинькофф API
- * ВАЖНО: Receipt и Token не участвуют в формировании токена!
+ * ОФИЦИАЛЬНАЯ генерация токена для Тинькофф API по правилам документации
+ * ВАЖНО: Только TerminalKey, Amount, OrderId, Description, Password участвуют в токене!
  */
 export function generateTinkoffToken(params: Record<string, any>): string {
-  // 1. Удаляем Token и Receipt из параметров
-  const { Token, Receipt, ...paramsToSign } = params;
+  console.log('=== OFFICIAL TINKOFF TOKEN GENERATION ===');
   
-  // 2. Конвертируем все значения в строки и сортируем по ключам
-  const sortedParams = Object.entries(paramsToSign)
-    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-    .map(([key, value]) => [key, String(value ?? '')]);
-
-  // 3. Создаем строку для подписи (только значения, объединенные вместе)
-  const stringToSign = sortedParams
-    .map(([_, value]) => value)
-    .join('') + TINKOFF_CONFIG.PASSWORD;
-
-  console.log('String to sign:', stringToSign);
-
-  // 4. Генерируем SHA-256 хеш
-  return crypto
+  // ШАГ 1: Собираем массив параметров корневого объекта (ТОЛЬКО обязательные для токена)
+  const tokenData = {
+    TerminalKey: params.TerminalKey,
+    Amount: params.Amount,
+    OrderId: params.OrderId,
+    Description: params.Description,
+    Password: TINKOFF_CONFIG.PASSWORD
+    // ❌ НЕ ВКЛЮЧАТЬ: SuccessURL, FailURL, NotificationURL, CustomerKey, Email, Phone, Receipt, DATA, Token
+  };
+  
+  console.log('Token data (official rules):', tokenData);
+  
+  // ШАГ 2: Сортируем по алфавиту по ключу
+  const sortedKeys = Object.keys(tokenData).sort();
+  console.log('Sorted keys:', sortedKeys);
+  
+  // ШАГ 3: Конкатенируем только значения в одну строку
+  let tokenString = '';
+  sortedKeys.forEach(key => {
+    const value = String(tokenData[key]);
+    console.log(`Key: ${key}, Value: ${value}`);
+    tokenString += value;
+  });
+  
+  console.log('Token string (concatenated values):', tokenString);
+  
+  // ШАГ 4: Применяем SHA-256 с поддержкой UTF-8
+  const token = crypto
     .createHash('sha256')
-    .update(stringToSign)
+    .update(tokenString, 'utf8')
     .digest('hex');
+    
+  console.log('Generated token (SHA-256):', token);
+  console.log('=== TOKEN GENERATION COMPLETE ===');
+  
+  return token;
 }
 
 /**

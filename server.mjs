@@ -21,42 +21,40 @@ const CONFIG = {
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
 
-/* ================= TOKEN GENERATION ================= */
+/* ================= TOKEN GENERATION - OFFICIAL TINKOFF RULES ================= */
 const generateToken = (data) => {
-  console.log('=== TOKEN GENERATION START ===');
+  console.log('=== OFFICIAL TINKOFF TOKEN GENERATION ===');
   
-  // Create a copy of data for token generation
-  const tokenData = { ...data };
-  delete tokenData.Receipt;
-  delete tokenData.DATA;
-  delete tokenData.Token;
+  // ШАГ 1: Собираем массив параметров корневого объекта (ТОЛЬКО обязательные для токена)
+  const tokenData = {
+    TerminalKey: data.TerminalKey,
+    Amount: data.Amount,
+    OrderId: data.OrderId,
+    Description: data.Description,
+    Password: CONFIG.PASSWORD
+    // ❌ НЕ ВКЛЮЧАТЬ: SuccessURL, FailURL, NotificationURL, CustomerKey, Email, Phone, Receipt, DATA
+  };
   
-  console.log('Original keys:', Object.keys(data));
-  console.log('After delete keys:', Object.keys(tokenData));
+  console.log('Token data (official rules):', tokenData);
   
-  // Add password to token data
-  tokenData.Password = CONFIG.PASSWORD;
-  
-  // Sort keys alphabetically
+  // ШАГ 2: Сортируем по алфавиту по ключу
   const sortedKeys = Object.keys(tokenData).sort();
-  console.log('Token data keys:', Object.keys(tokenData));
   console.log('Sorted keys:', sortedKeys);
   
-  // Create token string
+  // ШАГ 3: Конкатенируем только значения в одну строку
   let tokenString = '';
   sortedKeys.forEach(key => {
     const value = String(tokenData[key]);
-    console.log(`Key: ${key}, Value: ${value}, Type: ${typeof tokenData[key]}`);
+    console.log(`Key: ${key}, Value: ${value}`);
     tokenString += value;
   });
   
-  console.log('Token string:', tokenString);
+  console.log('Token string (concatenated values):', tokenString);
   
-  // Generate SHA256 hash
-  const token = createHash('sha256').update(tokenString).digest('hex');
-  
-  console.log('Generated token:', token);
-  console.log('=== TOKEN GENERATION END ===');
+  // ШАГ 4: Применяем SHA-256 с поддержкой UTF-8
+  const token = createHash('sha256').update(tokenString, 'utf8').digest('hex');
+  console.log('Generated token (SHA-256):', token);
+  console.log('=== TOKEN GENERATION COMPLETE ===');
   
   return token;
 };
@@ -118,40 +116,8 @@ app.post('/api/tinkoff-working', async (req, res) => {
     // Add notification URL for webhooks
     requestData.NotificationURL = 'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-webhook';
 
-    console.log('TINKOFF TOKEN GENERATION BY OFFICIAL RULES:');
-    
-    // ШАГ 1: Собираем массив параметров корневого объекта (ТОЛЬКО обязательные для токена по документации)
-    const tokenData = {
-      TerminalKey: requestData.TerminalKey,
-      Amount: requestData.Amount,
-      OrderId: requestData.OrderId,
-      Description: requestData.Description,
-      Password: CONFIG.PASSWORD
-      // ❌ НЕ ВКЛЮЧАТЬ в токен: SuccessURL, FailURL, NotificationURL, CustomerKey, Email, Phone
-    };
-
-    console.log('Token data (excluding Receipt and DATA):', tokenData);
-    
-    // ШАГ 3: Сортируем по алфавиту по ключу
-    const sortedKeys = Object.keys(tokenData).sort();
-    console.log('Sorted keys:', sortedKeys);
-    
-    // ШАГ 4: Конкатенируем только значения в одну строку
-    let tokenString = '';
-    sortedKeys.forEach(key => {
-      const value = String(tokenData[key]);
-      console.log(`Key: ${key}, Value: ${value}`);
-      tokenString += value;
-    });
-    
-    console.log('Token string (concatenated values):', tokenString);
-    
-    // ШАГ 5: Применяем SHA-256 с поддержкой UTF-8
-    const token = createHash('sha256').update(tokenString, 'utf8').digest('hex');
-    console.log('Generated token (SHA-256):', token);
-    
-    // ШАГ 6: Добавляем токен в запрос
-    requestData.Token = token;
+    // Используем унифицированную функцию генерации токена
+    requestData.Token = generateToken(requestData);
     
     console.log('Final request data:', JSON.stringify(requestData, null, 2));
     
