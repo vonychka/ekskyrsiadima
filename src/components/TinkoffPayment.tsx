@@ -84,7 +84,9 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
         fullName: String(fullName).trim(),
         email: String(email).trim(),
         phone: String(phone).trim(),
-        customerKey: String(email).trim() || String(orderId)
+        customerKey: String(email).trim() || String(orderId),
+        token: '', // Будет сгенерирован на сервере
+        TerminalKey: '1766479140318'
       };
       
       console.log('Полный запрос в Тинькофф:', requestData);
