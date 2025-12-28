@@ -77,11 +77,14 @@ app.post('/api/tinkoff-working', async (req, res) => {
     }
 
     const requestData = {
-      ...req.body,
       TerminalKey: CONFIG.TERMINAL_KEY,
       Amount: Math.round(Number(req.body.amount) * 100), // Convert to kopecks
-      OrderId: String(req.body.orderId) // Убедимся что OrderId это строка
-      // Библиотека TinkoffMerchantAPI сама генерирует токен
+      OrderId: String(req.body.orderId), // Убедимся что OrderId это строка
+      Description: req.body.description,
+      Email: req.body.email,
+      Phone: req.body.phone,
+      CustomerKey: req.body.customerKey
+      // Убираем дублирование - не используем ...req.body
     };
 
     // Add Receipt for fiscal data
