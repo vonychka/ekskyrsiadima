@@ -91,6 +91,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       ...req.body,
       TerminalKey: CONFIG.TERMINAL_KEY,
       Amount: Math.round(Number(req.body.amount) * 100), // Convert to kopecks
+      OrderId: String(req.body.orderId), // Убедимся что OrderId это строка
       Token: generateToken(req.body)
     };
 
@@ -183,57 +184,8 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
   }
 });
 
-/* ================= TOUR SCHEDULES (LOCAL STORAGE) ================= */
-// Локальное хранилище расписаний (без Firebase)
-let localSchedules = [
-  {
-    id: 's1',
-    tourId: '1',
-    date: '2025-12-28',
-    time: '10:00',
-    availableSpots: 20,
-    maxSpots: 20,
-    bookedSpots: 0
-  },
-  {
-    id: 's2',
-    tourId: '1',
-    date: '2025-12-28',
-    time: '14:00',
-    availableSpots: 20,
-    maxSpots: 20,
-    bookedSpots: 0
-  },
-  {
-    id: 's3',
-    tourId: '1',
-    date: '2025-12-29',
-    time: '10:00',
-    availableSpots: 20,
-    maxSpots: 20,
-    bookedSpots: 0
-  },
-  {
-    id: 's4',
-    tourId: '2',
-    date: '2025-12-28',
-    time: '18:00',
-    availableSpots: 15,
-    maxSpots: 15,
-    bookedSpots: 0
-  },
-  {
-    id: 's5',
-    tourId: '3',
-    date: '2025-12-28',
-    time: '11:00',
-    availableSpots: 25,
-    maxSpots: 25,
-    bookedSpots: 0
-  }
-];
-
-// Получаем расписания из Firebase админки
+/* ================= TOUR SCHEDULES (FIREBASE ONLY) ================= */
+// Получаем расписания только из Firebase админки
 const getAdminSchedules = async () => {
   try {
     console.log('Получение расписаний из Firebase админки...');
@@ -242,20 +194,19 @@ const getAdminSchedules = async () => {
     
     if (snapshot.exists()) {
       const schedules = snapshot.val();
-      const schedulesArray = Object.values(schedules).map(schedule => ({
-        ...schedule,
-        id: Object.keys(schedules).find(key => schedules[key] === schedule)
+      const schedulesArray = Object.keys(schedules).map(key => ({
+        ...schedules[key],
+        id: key
       }));
       console.log(`Найдено расписаний в админке: ${schedulesArray.length}`);
       return schedulesArray;
     } else {
-      console.log('Расписания в админке не найдены, используем локальные');
-      return localSchedules;
+      console.log('Расписания в админке не найдены');
+      return [];
     }
   } catch (error) {
     console.error('Ошибка получения расписаний из Firebase:', error);
-    console.log('Используем локальные расписания как fallback');
-    return localSchedules;
+    return [];
   }
 };
 
@@ -331,23 +282,13 @@ app.post('/api/book-schedule', async (req, res) => {
       bookedSpots: (schedule.bookedSpots || 0) + numberOfPeople
     };
     
-    try {
-      const scheduleRef = ref(database, `schedules/${scheduleId}`);
-      await update(scheduleRef, {
-        availableSpots: updatedSchedule.availableSpots,
-        bookedSpots: updatedSchedule.bookedSpots
-      });
-      console.log(`Расписание ${scheduleId} обновлено в Firebase`);
-    } catch (firebaseError) {
-      console.error('Ошибка обновления в Firebase:', firebaseError);
-      // Обновляем локально как fallback
-      const scheduleIndex = localSchedules.findIndex(s => s.id === scheduleId);
-      if (scheduleIndex !== -1) {
-        localSchedules[scheduleIndex].availableSpots = updatedSchedule.availableSpots;
-        localSchedules[scheduleIndex].bookedSpots = updatedSchedule.bookedSpots;
-      }
-    }
+    const scheduleRef = ref(database, `schedules/${scheduleId}`);
+    await update(scheduleRef, {
+      availableSpots: updatedSchedule.availableSpots,
+      bookedSpots: updatedSchedule.bookedSpots
+    });
     
+    console.log(`Расписание ${scheduleId} обновлено в Firebase`);
     console.log(`Забронировано ${numberOfPeople} мест для расписания ${scheduleId}. Осталось: ${updatedSchedule.availableSpots}`);
     
     res.json({

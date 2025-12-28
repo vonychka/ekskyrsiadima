@@ -1,59 +1,18 @@
 {
   "rules": {
+    ".read": true,
+    ".write": true,
     "tours": {
       ".read": true,
-      ".write": true, // Разрешаем запись для сервера
-      "$tourId": {
-        ".validate": "newData.hasChildren(['id', 'title', 'description', 'duration', 'pricing'])",
-        "pricing": {
-          "standard": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-          "child": { 
-            ".validate": "newData.isNumber() && newData.val() >= 0" 
-          },
-          "family": { 
-            ".validate": "newData.isNumber() && newData.val() >= 0"
-          },
-          "$other": { ".validate": false }
-        },
-        "id": { ".validate": "newData.val() === $tourId" },
-        "title": { ".validate": "newData.isString() && newData.val().length > 0" },
-        "description": { ".validate": "newData.isString() && newData.val().length > 0" },
-        "duration": { ".validate": "newData.isString() && newData.val().length > 0" },
-        "image": { ".validate": "newData.isString()" }
-      }
+      ".write": true
     },
     "schedules": {
       ".read": true,
-      ".write": true, // Разрешаем запись для сервера
-      "$scheduleId": {
-        ".validate": "newData.hasChildren(['id', 'tourId', 'date', 'time', 'availableSpots', 'maxSpots', 'bookedSpots'])",
-        "availableSpots": { 
-          ".validate": "newData.isNumber() && newData.val() >= 0" 
-        },
-        "maxSpots": { 
-          ".validate": "newData.isNumber() && newData.val() >= 0" 
-        },
-        "bookedSpots": { 
-          ".validate": "newData.isNumber() && newData.val() >= 0" 
-        },
-        "tourId": { ".validate": "newData.isString()" },
-        "date": { ".validate": "newData.isString()" },
-        "time": { ".validate": "newData.isString()" },
-        ".read": true,
-        ".write": true // Разрешаем запись для сервера
-      }
+      ".write": true
     },
     "promoCodes": {
       ".read": true,
-      ".write": true, // Разрешаем запись для сервера
-      "$promoId": {
-        ".validate": "newData.hasChildren(['code', 'discountType', 'discountValue', 'maxUses', 'currentUses'])",
-        "code": { ".validate": "newData.isString()" },
-        "discountType": { ".validate": "newData.isString()" },
-        "discountValue": { ".validate": "newData.isNumber() && newData.val() > 0" },
-        "maxUses": { ".validate": "newData.isNumber() && newData.val() > 0" },
-        "currentUses": { ".validate": "newData.isNumber() && newData.val() >= 0" }
-      }
+      ".write": true
     }
   }
 }
