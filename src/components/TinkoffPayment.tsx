@@ -109,6 +109,10 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
 
       console.log('Место забронировано:', bookResult);
       
+      // Получаем данные о забронированном времени
+      const tourDate = bookResult.tourDate || new Date().toLocaleDateString('ru-RU');
+      const tourTime = bookResult.tourTime || 'Не указано';
+      
       const requestData = {
         amount: Number(amount),
         orderId: String(orderId),
@@ -145,8 +149,8 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
               phone: phone,
               email: email,
               tourTitle: description,
-              tourDate: new Date().toLocaleDateString('ru-RU'),
-              tourTime: 'Не указано',
+              tourDate: tourDate,
+              tourTime: tourTime,
               numberOfPeople: 1,
               selectedTariff: 'standard',
               finalPrice: amount,
@@ -181,8 +185,8 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
             phone,
             email,
             tourTitle: description,
-            tourDate: new Date().toLocaleDateString('ru-RU'),
-            tourTime: 'Не указано',
+            tourDate: tourDate,
+            tourTime: tourTime,
             numberOfPeople: 1,
             selectedTariff: 'standard',
             finalPrice: amount,
