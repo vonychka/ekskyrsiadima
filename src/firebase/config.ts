@@ -1,9 +1,9 @@
 // src/firebase/config.ts
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { FirebaseApp } from 'firebase/app';
 import { getDatabase, Database } from 'firebase/database';
 import { 
   getAuth, 
-  Auth, 
+  Auth,
   signInWithEmailAndPassword, 
   signOut,
   signInAnonymously,
@@ -12,42 +12,24 @@ import {
   setPersistence,
   browserLocalPersistence
 } from 'firebase/auth';
+import { app } from '../services/storageService';
 
-// Your Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBE-bcqM7DM_zV8xivFKKbrSAHifIWYgps",
-  authDomain: "exursional.firebaseapp.com",
-  databaseURL: "https://exursional-default-rtdb.firebaseio.com/",
-  projectId: "exursional",
-  storageBucket: "exursional.firebasestorage.app",
-  messagingSenderId: "770008017138",
-  appId: "1:770008017138:web:23909355289d478208c86b"
-};
-
-// Initialize Firebase
-let app: FirebaseApp;
+// Используем существующий Firebase app из storageService.ts
 let database: Database;
 let auth: Auth;
 
-// Initialize Firebase only once
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  database = getDatabase(app);
-  
-  // Enable persistence
-  setPersistence(auth, browserLocalPersistence)
-    .then(() => {
-      console.log('Auth persistence enabled');
-    })
-    .catch((error: any) => {
-      console.error('Error enabling auth persistence:', error);
-    });
-} else {
-  app = getApp();
-  auth = getAuth(app);
-  database = getDatabase(app);
-}
+// Initialize database and auth
+database = getDatabase(app);
+auth = getAuth(app);
+
+// Enable persistence
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log('Auth persistence enabled');
+  })
+  .catch((error: any) => {
+    console.error('Error enabling auth persistence:', error);
+  });
 
 // Auth state observer
 const onAuthStateChange = (callback: (user: User | null) => void) => {
