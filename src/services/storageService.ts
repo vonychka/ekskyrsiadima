@@ -15,6 +15,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
+export { app };
+
 export const uploadImages = async (files: File[], folder: string): Promise<string[]> => {
   const uploadPromises = files.map(async (file, index) => {
     try {
