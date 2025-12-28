@@ -120,17 +120,16 @@ app.post('/api/tinkoff-working', async (req, res) => {
 
     console.log('TINKOFF TOKEN GENERATION BY OFFICIAL RULES:');
     
-    // ШАГ 1: Собираем массив параметров корневого объекта (исключаем Receipt и DATA)
-    const tokenData = {};
-    Object.keys(requestData).forEach(key => {
-      if (key !== 'Receipt' && key !== 'DATA') {
-        tokenData[key] = requestData[key];
-      }
-    });
-    
-    // ШАГ 2: Добавляем Password
-    tokenData.Password = CONFIG.PASSWORD;
-    
+    // ШАГ 1: Собираем массив параметров корневого объекта (ТОЛЬКО обязательные для токена по документации)
+    const tokenData = {
+      TerminalKey: requestData.TerminalKey,
+      Amount: requestData.Amount,
+      OrderId: requestData.OrderId,
+      Description: requestData.Description,
+      Password: CONFIG.PASSWORD
+      // ❌ НЕ ВКЛЮЧАТЬ в токен: SuccessURL, FailURL, NotificationURL, CustomerKey, Email, Phone
+    };
+
     console.log('Token data (excluding Receipt and DATA):', tokenData);
     
     // ШАГ 3: Сортируем по алфавиту по ключу
