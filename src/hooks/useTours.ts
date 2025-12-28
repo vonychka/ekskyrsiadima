@@ -328,11 +328,6 @@ export const useTours = () => {
 
   // In useTours.ts
 const deleteSchedule = useCallback(async (scheduleId: string, isUserAuthenticated: boolean) => {
-  if (!isUserAuthenticated) {
-    console.error('Ошибка: Пользователь не аутентифицирован');
-    throw new Error('Пользователь не аутентифицирован');
-  }
-
   try {
     console.log('Попытка удаления расписания с ID:', scheduleId);
     const scheduleRef = ref(database, `schedules/${scheduleId}`);
