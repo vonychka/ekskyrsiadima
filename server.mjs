@@ -4,8 +4,18 @@ import { createHash } from 'crypto';
 import TinkoffMerchantAPI from 'tinkoff-merchant-api';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, get, set, update, remove, push } from 'firebase/database';
+import admin from 'firebase-admin';
+import serviceAccount from './firebase-service-account.json' assert { type: 'json' };
 
 const app = express();
+
+// Инициализируем Firebase Admin SDK для сервера
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://exursional-default-rtdb.firebaseio.com/"
+});
+
+const adminDb = admin.database();
 
 /* ================= CORS ================= */
 app.use(cors({
@@ -185,12 +195,12 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
 });
 
 /* ================= TOUR SCHEDULES (FIREBASE ONLY) ================= */
-// Получаем расписания только из Firebase админки
+// Получаем расписания только из Firebase админки через Admin SDK
 const getAdminSchedules = async () => {
   try {
     console.log('Получение расписаний из Firebase админки...');
-    const schedulesRef = ref(database, 'schedules');
-    const snapshot = await get(schedulesRef);
+    const schedulesRef = adminDb.ref('schedules');
+    const snapshot = await schedulesRef.get();
     
     if (snapshot.exists()) {
       const schedules = snapshot.val();
@@ -282,8 +292,8 @@ app.post('/api/book-schedule', async (req, res) => {
       bookedSpots: (schedule.bookedSpots || 0) + numberOfPeople
     };
     
-    const scheduleRef = ref(database, `schedules/${scheduleId}`);
-    await update(scheduleRef, {
+    const scheduleRef = adminDb.ref(`schedules/${scheduleId}`);
+    await scheduleRef.update({
       availableSpots: updatedSchedule.availableSpots,
       bookedSpots: updatedSchedule.bookedSpots
     });
@@ -406,8 +416,8 @@ app.get('/api/admin/schedules', async (req, res) => {
   try {
     console.log('Получение всех расписаний для админки');
     
-    const schedulesRef = ref(database, 'schedules');
-    const snapshot = await get(schedulesRef);
+    const schedulesRef = adminDb.ref('schedules');
+    const snapshot = await schedulesRef.get();
     
     if (snapshot.exists()) {
       const schedules = snapshot.val();
@@ -437,9 +447,9 @@ app.post('/api/admin/schedules', async (req, res) => {
       bookedSpots: 0
     };
     
-    const schedulesRef = ref(database, 'schedules');
-    const newScheduleRef = push(schedulesRef);
-    await set(newScheduleRef, {
+    const schedulesRef = adminDb.ref('schedules');
+    const newScheduleRef = schedulesRef.push();
+    await newScheduleRef.set({
       ...newSchedule,
       id: newScheduleRef.key
     });
@@ -462,8 +472,8 @@ app.put('/api/admin/schedules/:scheduleId', async (req, res) => {
     const { scheduleId } = req.params;
     console.log(`Обновление расписания ${scheduleId}:`, req.body);
     
-    const scheduleRef = ref(database, `schedules/${scheduleId}`);
-    await update(scheduleRef, req.body);
+    const scheduleRef = adminDb.ref(`schedules/${scheduleId}`);
+    await scheduleRef.update(req.body);
     
     console.log(`Расписание ${scheduleId} обновлено`);
     res.json({ success: true });
@@ -479,8 +489,8 @@ app.delete('/api/admin/schedules/:scheduleId', async (req, res) => {
     const { scheduleId } = req.params;
     console.log(`Удаление расписания ${scheduleId}`);
     
-    const scheduleRef = ref(database, `schedules/${scheduleId}`);
-    await remove(scheduleRef);
+    const scheduleRef = adminDb.ref(`schedules/${scheduleId}`);
+    await scheduleRef.remove();
     
     console.log(`Расписание ${scheduleId} удалено`);
     res.json({ success: true });
