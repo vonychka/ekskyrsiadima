@@ -31,7 +31,7 @@ export const TinkoffPaymentUpdated: React.FC<TinkoffPaymentProps> = ({
     setError(null);
 
     try {
-      const response = await fetch('https://ekskyrsiadima-jhin.vercel.app/api/tinkoff-working', {
+      const response = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-working', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
