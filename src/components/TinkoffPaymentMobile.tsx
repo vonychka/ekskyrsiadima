@@ -40,7 +40,7 @@ const TinkoffPaymentMobile: React.FC<TinkoffPaymentMobileProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: amount * 100, // конвертируем рубли в копейки
+          amount,
           orderId,
           description,
           email,

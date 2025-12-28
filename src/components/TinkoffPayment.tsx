@@ -83,7 +83,7 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: amount * 100, // конвертируем рубли в копейки
+          amount,
           orderId,
           description,
           email,
