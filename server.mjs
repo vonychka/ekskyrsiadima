@@ -16,26 +16,24 @@ app.use(express.json());
 
 /* ================= CONFIG ================= */
 const CONFIG = {
-  TERMINAL_KEY: '1766479140318', // Рабочий терминал
-  PASSWORD: 's9R^$NsmYPytIY#_',   // Рабочий пароль
+  TERMINAL_KEY: '1766479140318', // Рабочий терминал (подтвержден поддержкой)
+  PASSWORD: 's9R^$NsmYPytIY#_',   // Рабочий пароль (подтвержден поддержкой)
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
 
-/* ================= TOKEN GENERATION - OFFICIAL TINKOFF RULES ================= */
+/* ================= TOKEN GENERATION - TINKOFF SUPPORT RULES ================= */
 const generateToken = (data) => {
-  console.log('=== OFFICIAL TINKOFF TOKEN GENERATION ===');
+  console.log('=== CORRECT TINKOFF TOKEN GENERATION (SUPPORT RESPONSE) ===');
   
-  // ШАГ 1: Собираем массив параметров корневого объекта (ТОЛЬКО обязательные для токена)
-  const tokenData = {
-    TerminalKey: data.TerminalKey,
-    Amount: data.Amount,
-    OrderId: data.OrderId,
-    Description: data.Description,
-    Password: CONFIG.PASSWORD
-    // ❌ НЕ ВКЛЮЧАТЬ: SuccessURL, FailURL, NotificationURL, CustomerKey, Email, Phone, Receipt, DATA
-  };
+  // ШАГ 1: Используем ВСЕ параметры запроса, кроме Receipt и DATA
+  const tokenData = { ...data };
+  delete tokenData.Receipt;
+  delete tokenData.DATA;
+  delete tokenData.Token; // Убираем старый токен если есть
+  // Добавляем Password для генерации токена
+  tokenData.Password = CONFIG.PASSWORD;
   
-  console.log('Token data (official rules):', tokenData);
+  console.log('Token data (ALL parameters except Receipt/DATA):', tokenData);
   
   // ШАГ 2: Сортируем по алфавиту по ключу
   const sortedKeys = Object.keys(tokenData).sort();
@@ -79,10 +77,8 @@ app.post('/api/tinkoff-working', async (req, res) => {
       Amount: Math.round(Number(req.body.amount) * 100), // Convert to kopecks
       OrderId: String(req.body.orderId), // Убедимся что OrderId это строка
       Description: req.body.description,
-      Email: req.body.email,
-      Phone: req.body.phone,
       CustomerKey: req.body.customerKey
-      // Убираем дублирование - не используем ...req.body
+      // ❌ УБРАЛИ Email и Phone из корневых параметров по требованию поддержки
     };
 
     // Add Receipt for fiscal data
@@ -102,7 +98,7 @@ app.post('/api/tinkoff-working', async (req, res) => {
       }]
     };
 
-    // Add DATA with customer information
+    // Add DATA with customer information (Email и Phone только здесь по требованию поддержки)
     requestData.DATA = {
       Name: req.body.fullName,
       Email: req.body.email,
