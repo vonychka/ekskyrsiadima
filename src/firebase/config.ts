@@ -40,7 +40,7 @@ if (!getApps().length) {
     .then(() => {
       console.log('Auth persistence enabled');
     })
-    .catch((error) => {
+    .catch((error: any) => {
       console.error('Error enabling auth persistence:', error);
     });
 } else {
