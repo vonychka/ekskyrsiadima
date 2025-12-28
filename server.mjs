@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import { createHash } from 'crypto';
-import TinkoffMerchantAPI from 'tinkoff-merchant-api';
 
 const app = express();
 
@@ -116,24 +115,49 @@ app.post('/api/tinkoff-working', async (req, res) => {
     // Add notification URL for webhooks
     requestData.NotificationURL = 'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-webhook';
 
-    console.log('TINKOFF LIBRARY RESPONSE:');
+    console.log('TINKOFF DIRECT REQUEST:');
     
-    const tinkoff = new TinkoffMerchantAPI(CONFIG.TERMINAL_KEY, CONFIG.PASSWORD);
-    const response = await tinkoff.init(requestData);
+    // Генерируем токен правильно для прямого запроса
+    const tokenData = { ...requestData };
+    delete tokenData.Receipt;
+    delete tokenData.DATA;
+    tokenData.Password = CONFIG.PASSWORD;
     
-    console.log(response);
+    // Сортируем ключи и создаем строку для токена
+    const sortedKeys = Object.keys(tokenData).sort();
+    let tokenString = '';
+    sortedKeys.forEach(key => {
+      tokenString += String(tokenData[key]);
+    });
+    
+    const token = createHash('sha256').update(tokenString).digest('hex');
+    requestData.Token = token;
+    
+    console.log('Final request data:', JSON.stringify(requestData, null, 2));
+    
+    // Прямой запрос к API Тинькофф
+    const response = await fetch(`${CONFIG.API_URL}/Init`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
+    });
+    
+    const result = await response.json();
+    console.log('Tinkoff response:', result);
 
-    if (response.Success) {
+    if (result.Success) {
       res.json({
         success: true,
-        paymentUrl: response.PaymentURL,
-        paymentId: response.PaymentId,
-        orderId: response.OrderId
+        paymentUrl: result.PaymentURL,
+        paymentId: result.PaymentId,
+        orderId: result.OrderId
       });
     } else {
       res.status(400).json({
         success: false,
-        error: response.Details || 'Ошибка при инициализации платежа'
+        error: result.Details || 'Ошибка при инициализации платежа'
       });
     }
   } catch (error) {
