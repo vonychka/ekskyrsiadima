@@ -3,6 +3,7 @@ import { useOptimizedTours } from '../hooks/useOptimizedTours';
 import TourCard from '../components/TourCard';
 import StaticReviewsSection from '../components/StaticReviewsSection';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { ScheduleBookingTestButton } from '../components/ScheduleBookingTestButton';
 import { getNearestTourSpots } from '../data/tours';
 import { Tour } from '../types';
 
@@ -341,6 +342,13 @@ const HomePage: React.FC = () => {
               </a>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Schedule Booking Test Section */}
+      <section className="py-12 bg-white">
+        <div className="container mx-auto px-4">
+          <ScheduleBookingTestButton />
         </div>
       </section>
 
