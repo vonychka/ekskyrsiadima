@@ -99,8 +99,8 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
         throw new Error(data.message || data.error || 'Ошибка при инициализации платежа');
       }
 
-      if (data.Success) {
-        if (data.PaymentURL) {
+      if (data.success || data.Success) {
+        if (data.paymentUrl || data.PaymentURL) {
           // Отправляем данные клиента в Telegram перед редиректом
           try {
             const clientData = {
@@ -155,8 +155,8 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
           
           localStorage.setItem('pendingTicketData', JSON.stringify(paymentData));
           
-          window.location.href = data.PaymentURL;
-          onSuccess?.(data.PaymentURL);
+          window.location.href = data.paymentUrl || data.PaymentURL;
+          onSuccess?.(data.paymentUrl || data.PaymentURL);
         } else {
           throw new Error('Не получена ссылка на оплату');
         }

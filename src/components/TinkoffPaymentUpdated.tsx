@@ -53,8 +53,8 @@ export const TinkoffPaymentUpdated: React.FC<TinkoffPaymentProps> = ({
         throw new Error(data.message || data.error || 'Ошибка при инициализации платежа');
       }
 
-      if (data.Success) {
-        if (data.PaymentURL) {
+      if (data.success || data.Success) {
+        if (data.paymentUrl || data.PaymentURL) {
           // Сохраняем данные для отправки чека после редиректа
           const paymentData = {
             fullName,
@@ -73,8 +73,8 @@ export const TinkoffPaymentUpdated: React.FC<TinkoffPaymentProps> = ({
           // Сохраняем в localStorage для отправки после возврата с платежной страницы
           localStorage.setItem('pendingTicketData', JSON.stringify(paymentData));
           
-          window.location.href = data.PaymentURL;
-          onSuccess?.(data.PaymentURL);
+          window.location.href = data.paymentUrl || data.PaymentURL;
+          onSuccess?.(data.paymentUrl || data.PaymentURL);
         } else {
           throw new Error('Не получена ссылка на оплату');
         }

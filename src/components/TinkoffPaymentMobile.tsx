@@ -56,8 +56,8 @@ const TinkoffPaymentMobile: React.FC<TinkoffPaymentMobileProps> = ({
         throw new Error(data?.Message || data?.message || data?.error || 'Ошибка при инициализации платежа');
       }
 
-      if (data.Success) {
-        if (data.PaymentURL) {
+      if (data.success || data.Success) {
+        if (data.paymentUrl || data.PaymentURL) {
           // сохраняем данные для чека
           const paymentData = {
             fullName,
@@ -74,8 +74,8 @@ const TinkoffPaymentMobile: React.FC<TinkoffPaymentMobileProps> = ({
             JSON.stringify(paymentData)
           );
 
-          onSuccess?.(data.PaymentURL);
-          window.location.href = data.PaymentURL;
+          onSuccess?.(data.paymentUrl || data.PaymentURL);
+          window.location.href = data.paymentUrl || data.PaymentURL;
         } else {
           throw new Error('Не получена ссылка на оплату');
         }
