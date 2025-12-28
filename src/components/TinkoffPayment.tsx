@@ -78,12 +78,12 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
       const tourTime = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
       
       const requestData = {
-        amount: Number(amount),
-        orderId: String(orderId),
-        description: String(description).trim(),
-        customerKey: String(email).trim() || String(orderId),
-        token: '', // Будет сгенерирован на сервере
-        TerminalKey: '1766479140318'
+        amount,
+        orderId,
+        description,
+        email,
+        phone,
+        customerKey: email || orderId
       };
       
       console.log('Полный запрос в Тинькофф:', requestData);
