@@ -34,9 +34,7 @@ export const TinkoffPaymentMobile: React.FC<TinkoffPaymentMobileProps> = ({
       // Определяем мобильное устройство
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      const apiUrl = isMobile 
-        ? 'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-mobile'
-        : 'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-working';
+      const apiUrl = 'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-working';
 
       const response = await fetch(apiUrl, {
         method: 'POST',
