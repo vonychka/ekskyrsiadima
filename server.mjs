@@ -243,6 +243,11 @@ ID платежа: ${paymentId}
 🔗 Канал: https://t.me/agenDima`;
 
     // Отправляем в Telegram
+    console.log('Отправка сообщения в Telegram...');
+    console.log('Bot token: 7994136906:AAH2K4U8WqZ8YH9gKf8xLq3vS7rT2mK4Y');
+    console.log('Chat ID: 1183482279');
+    console.log('Message length:', message.length);
+    
     const telegramResponse = await fetch('https://api.telegram.org/bot7994136906:AAH2K4U8WqZ8YH9gKf8xLq3vS7rT2mK4Y/sendMessage', {
       method: 'POST',
       headers: {

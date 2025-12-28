@@ -132,6 +132,8 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
             
             if (!telegramResponse.ok) {
               console.error('Ошибка отправки в Telegram:', telegramResult);
+            } else {
+              console.log('✅ Данные успешно отправлены в Telegram');
             }
           } catch (telegramError) {
             console.error('Ошибка при отправке в Telegram:', telegramError);
