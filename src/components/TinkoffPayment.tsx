@@ -77,23 +77,19 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
       const tourDate = new Date().toLocaleDateString('ru-RU');
       const tourTime = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
       
-      const requestData = {
-        amount,
-        orderId,
-        description,
-        email,
-        phone,
-        customerKey: email || orderId
-      };
-      
-      console.log('Полный запрос в Тинькофф:', requestData);
-      
       const response = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-working', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          amount,
+          orderId,
+          description,
+          email,
+          phone,
+          customerKey: email || orderId
+        }),
       });
 
       const data = await response.json();
