@@ -22,14 +22,6 @@ const CONFIG = {
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
 
-/* ================= FIREBASE ================= */
-const firebaseConfig = {
-  databaseURL: "https://exursional-default-rtdb.firebaseio.com/"
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const database = getDatabase(firebaseApp);
-
 /* ================= TOKEN GENERATION ================= */
 const generateToken = (data) => {
   console.log('=== TOKEN GENERATION START ===');
@@ -269,7 +261,7 @@ ID платежа: ${paymentId}
 
 /* ================= SIMPLE TOURS API ================= */
 app.get('/api/tours', (req, res) => {
-  // Возвращаем базовые туры без Firebase
+  // Возвращаем базовые туры
   const tours = [
     {
       id: '1757526403608',
