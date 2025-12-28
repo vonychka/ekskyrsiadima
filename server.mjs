@@ -115,22 +115,40 @@ app.post('/api/tinkoff-working', async (req, res) => {
     // Add notification URL for webhooks
     requestData.NotificationURL = 'https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-webhook';
 
-    console.log('TINKOFF DIRECT REQUEST:');
+    console.log('TINKOFF TOKEN GENERATION BY OFFICIAL RULES:');
     
-    // Генерируем токен правильно для прямого запроса
-    const tokenData = { ...requestData };
-    delete tokenData.Receipt;
-    delete tokenData.DATA;
-    tokenData.Password = CONFIG.PASSWORD;
-    
-    // Сортируем ключи и создаем строку для токена
-    const sortedKeys = Object.keys(tokenData).sort();
-    let tokenString = '';
-    sortedKeys.forEach(key => {
-      tokenString += String(tokenData[key]);
+    // ШАГ 1: Собираем массив параметров корневого объекта (исключаем Receipt и DATA)
+    const tokenData = {};
+    Object.keys(requestData).forEach(key => {
+      if (key !== 'Receipt' && key !== 'DATA') {
+        tokenData[key] = requestData[key];
+      }
     });
     
-    const token = createHash('sha256').update(tokenString).digest('hex');
+    // ШАГ 2: Добавляем Password
+    tokenData.Password = CONFIG.PASSWORD;
+    
+    console.log('Token data (excluding Receipt and DATA):', tokenData);
+    
+    // ШАГ 3: Сортируем по алфавиту по ключу
+    const sortedKeys = Object.keys(tokenData).sort();
+    console.log('Sorted keys:', sortedKeys);
+    
+    // ШАГ 4: Конкатенируем только значения в одну строку
+    let tokenString = '';
+    sortedKeys.forEach(key => {
+      const value = String(tokenData[key]);
+      console.log(`Key: ${key}, Value: ${value}`);
+      tokenString += value;
+    });
+    
+    console.log('Token string (concatenated values):', tokenString);
+    
+    // ШАГ 5: Применяем SHA-256 с поддержкой UTF-8
+    const token = createHash('sha256').update(tokenString, 'utf8').digest('hex');
+    console.log('Generated token (SHA-256):', token);
+    
+    // ШАГ 6: Добавляем токен в запрос
     requestData.Token = token;
     
     console.log('Final request data:', JSON.stringify(requestData, null, 2));
