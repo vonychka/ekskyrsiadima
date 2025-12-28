@@ -67,51 +67,15 @@ export const TinkoffPayment: React.FC<TinkoffPaymentProps> = ({
         tourId = '3'; // Архитектурное наследие
       }
 
-      // Получаем доступные расписания
-      const schedulesResponse = await fetch(`https://nextjs-boilerplateuexkyesua.onrender.com/api/tour-schedules/${tourId}`);
-      const schedulesData = await schedulesResponse.json();
+      // Пропускаем проверку расписаний - оплата работает без них
+      console.log('Оплата без требований к расписаниям');
       
-      if (!schedulesResponse.ok) {
-        throw new Error('Ошибка получения расписаний');
-      }
-
-      console.log('Доступные расписания:', schedulesData);
+      // Создаем уникальный ID для бронирования
+      const bookingId = `booking-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      if (schedulesData.length === 0) {
-        throw new Error('Нет доступных расписаний для этой экскурсии');
-      }
-
-      // Берем ближайшее расписание
-      const nearestSchedule = schedulesData[0];
-      console.log('Выбрано расписание:', nearestSchedule);
-      
-      if (nearestSchedule.availableSpots < 1) {
-        throw new Error('Нет доступных мест для этого времени');
-      }
-
-      // Бронируем место в расписании
-      const bookResponse = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/book-schedule', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          scheduleId: nearestSchedule.id,
-          numberOfPeople: 1
-        }),
-      });
-
-      const bookResult = await bookResponse.json();
-      
-      if (!bookResponse.ok) {
-        throw new Error(bookResult.error || 'Ошибка бронирования места');
-      }
-
-      console.log('Место забронировано:', bookResult);
-      
-      // Получаем данные о забронированном времени
-      const tourDate = bookResult.tourDate || new Date().toLocaleDateString('ru-RU');
-      const tourTime = bookResult.tourTime || 'Не указано';
+      // Получаем текущую дату и время для данных
+      const tourDate = new Date().toLocaleDateString('ru-RU');
+      const tourTime = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
       
       const requestData = {
         amount: Number(amount),
