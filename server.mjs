@@ -2,20 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { createHash } from 'crypto';
 import TinkoffMerchantAPI from 'tinkoff-merchant-api';
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, get, set, update, remove, push } from 'firebase/database';
-import admin from 'firebase-admin';
-import serviceAccount from './firebase-service-account.json' assert { type: 'json' };
 
 const app = express();
-
-// Инициализируем Firebase Admin SDK для сервера
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://exursional-default-rtdb.firebaseio.com/"
-});
-
-const adminDb = admin.database();
 
 /* ================= CORS ================= */
 app.use(cors({
@@ -194,123 +182,18 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
   }
 });
 
-/* ================= TOUR SCHEDULES (FIREBASE ONLY) ================= */
-// Получаем расписания только из Firebase админки через Admin SDK
-const getAdminSchedules = async () => {
+/* ================= SIMPLE BOOKING ================= */
+app.post('/api/book-simple', async (req, res) => {
   try {
-    console.log('Получение расписаний из Firebase админки...');
-    const schedulesRef = adminDb.ref('schedules');
-    const snapshot = await schedulesRef.get();
-    
-    if (snapshot.exists()) {
-      const schedules = snapshot.val();
-      const schedulesArray = Object.keys(schedules).map(key => ({
-        ...schedules[key],
-        id: key
-      }));
-      console.log(`Найдено расписаний в админке: ${schedulesArray.length}`);
-      return schedulesArray;
-    } else {
-      console.log('Расписания в админке не найдены');
-      return [];
-    }
-  } catch (error) {
-    console.error('Ошибка получения расписаний из Firebase:', error);
-    return [];
-  }
-};
-
-app.get('/api/tour-schedules/:tourId', async (req, res) => {
-  try {
-    const { tourId } = req.params;
-    console.log(`Получение расписаний для тура: ${tourId}`);
-    
-    // Получаем локальные расписания
-    const adminSchedules = await getAdminSchedules();
-    
-    // Фильтруем расписания для конкретного тура
-    const tourSchedules = adminSchedules.filter(schedule => schedule.tourId === tourId);
-    
-    // Фильтруем прошедшие даты
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    
-    const upcomingSchedules = tourSchedules.filter(schedule => {
-      const scheduleDate = schedule.date;
-      const scheduleTime = schedule.time.split(':');
-      const scheduleHour = parseInt(scheduleTime[0]);
-      const scheduleMinute = parseInt(scheduleTime[1]);
-      
-      if (scheduleDate > today) return true;
-      if (scheduleDate === today) {
-        return (scheduleHour > currentHour) || 
-               (scheduleHour === currentHour && scheduleMinute > currentMinute);
-      }
-      return false;
-    });
-    
-    console.log(`Найдено расписаний для тура ${tourId}:`, upcomingSchedules.length);
-    res.json(upcomingSchedules);
-    
-  } catch (error) {
-    console.error('Ошибка получения расписаний:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-app.post('/api/book-schedule', async (req, res) => {
-  try {
-    const { scheduleId, numberOfPeople } = req.body;
-    
-    if (!scheduleId || !numberOfPeople || numberOfPeople <= 0) {
-      return res.status(400).json({ error: 'Неверные данные' });
-    }
-    
-    console.log(`Попытка бронирования ${numberOfPeople} мест для расписания ${scheduleId}`);
-    
-    // Получаем расписания из Firebase админки
-    const adminSchedules = await getAdminSchedules();
-    const schedule = adminSchedules.find(s => s.id === scheduleId);
-    
-    if (!schedule) {
-      return res.status(404).json({ error: 'Расписание не найдено' });
-    }
-    
-    if (schedule.availableSpots < numberOfPeople) {
-      return res.status(400).json({ 
-        error: 'Недостаточно мест',
-        availableSpots: schedule.availableSpots 
-      });
-    }
-    
-    // Обновляем расписание в Firebase
-    const updatedSchedule = {
-      ...schedule,
-      availableSpots: schedule.availableSpots - numberOfPeople,
-      bookedSpots: (schedule.bookedSpots || 0) + numberOfPeople
-    };
-    
-    const scheduleRef = adminDb.ref(`schedules/${scheduleId}`);
-    await scheduleRef.update({
-      availableSpots: updatedSchedule.availableSpots,
-      bookedSpots: updatedSchedule.bookedSpots
-    });
-    
-    console.log(`Расписание ${scheduleId} обновлено в Firebase`);
-    console.log(`Забронировано ${numberOfPeople} мест для расписания ${scheduleId}. Осталось: ${updatedSchedule.availableSpots}`);
+    const { tourData } = req.body;
+    console.log('Простое бронирование:', tourData);
     
     res.json({
       success: true,
-      scheduleId: scheduleId,
-      bookedSlots: numberOfPeople,
-      availableSpots: updatedSchedule.availableSpots,
-      maxSpots: schedule.maxSpots,
-      source: 'firebase'
+      message: 'Бронирование принято'
     });
   } catch (error) {
-    console.error('Ошибка бронирования расписания:', error);
+    console.error('Ошибка бронирования:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
@@ -321,7 +204,7 @@ app.post('/api/send-client-data', async (req, res) => {
     console.log('=== ОТПРАВКА ДАННЫХ КЛИЕНТА В TELEGRAM ===');
     console.log('Client data:', req.body);
     
-    const { fullName, phone, email, tourTitle, tourDate, tourTime, numberOfPeople, selectedTariff, finalPrice, paymentId, paymentMethod } = req.body;
+    const { fullName, phone, email, tourTitle, tourDate, tourTime, numberOfPeople, selectedTariff, finalPrice, paymentId, paymentMethod, selectedTime } = req.body;
     
     // Формируем сообщение для Telegram
     const message = `🎫 НОВЫЙ ЗАКАЗ ЭКСКУРСИИ
@@ -335,6 +218,7 @@ Email: ${email}
 Название: ${tourTitle}
 Дата: ${tourDate}
 Время: ${tourTime}
+Выбранное время: ${selectedTime || 'Не указано'}
 Количество человек: ${numberOfPeople}
 Тариф: ${selectedTariff}
 
@@ -383,121 +267,37 @@ ID платежа: ${paymentId}
   }
 });
 
-/* ================= TOURS API ================= */
-app.get('/api/tours', async (req, res) => {
-  try {
-    console.log('Получение списка туров');
-    
-    // Получаем туры из Firebase
-    const toursRef = ref(database, 'tours');
-    const snapshot = await get(toursRef);
-    
-    if (snapshot.exists()) {
-      const tours = snapshot.val();
-      const toursArray = Object.keys(tours).map(key => ({
-        ...tours[key],
-        id: key
-      }));
-      console.log(`Найдено туров: ${toursArray.length}`);
-      res.json(toursArray);
-    } else {
-      console.log('Туры не найдены, возвращаем пустой массив');
-      res.json([]);
+/* ================= SIMPLE TOURS API ================= */
+app.get('/api/tours', (req, res) => {
+  // Возвращаем базовые туры без Firebase
+  const tours = [
+    {
+      id: '1757526403608',
+      title: 'Боярская экскурсия',
+      description: 'Увлекательная экскурсия по Боярке',
+      duration: '2 часа',
+      pricing: {
+        standard: 1000,
+        child: 500,
+        family: 2500
+      },
+      image: '/boyarka.jpg'
+    },
+    {
+      id: '1758190733023',
+      title: 'Скоро появится',
+      description: 'Новая экскурсия в разработке',
+      duration: '3 часа',
+      pricing: {
+        standard: 1500,
+        child: 750,
+        family: 3500
+      },
+      image: '/coming-soon.jpg'
     }
-  } catch (error) {
-    console.error('Ошибка получения туров:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-/* ================= ADMIN API ================= */
-// Получение всех расписаний для админки
-app.get('/api/admin/schedules', async (req, res) => {
-  try {
-    console.log('Получение всех расписаний для админки');
-    
-    const schedulesRef = adminDb.ref('schedules');
-    const snapshot = await schedulesRef.get();
-    
-    if (snapshot.exists()) {
-      const schedules = snapshot.val();
-      const schedulesArray = Object.keys(schedules).map(key => ({
-        ...schedules[key],
-        id: key
-      }));
-      console.log(`Найдено расписаний: ${schedulesArray.length}`);
-      res.json(schedulesArray);
-    } else {
-      console.log('Расписания не найдены, возвращаем пустой массив');
-      res.json([]);
-    }
-  } catch (error) {
-    console.error('Ошибка получения расписаний:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// Создание нового расписания
-app.post('/api/admin/schedules', async (req, res) => {
-  try {
-    console.log('Создание нового расписания:', req.body);
-    
-    const newSchedule = {
-      ...req.body,
-      bookedSpots: 0
-    };
-    
-    const schedulesRef = adminDb.ref('schedules');
-    const newScheduleRef = schedulesRef.push();
-    await newScheduleRef.set({
-      ...newSchedule,
-      id: newScheduleRef.key
-    });
-    
-    console.log(`Расписание создано с ID: ${newScheduleRef.key}`);
-    res.json({
-      success: true,
-      id: newScheduleRef.key,
-      ...newSchedule
-    });
-  } catch (error) {
-    console.error('Ошибка создания расписания:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// Обновление расписания
-app.put('/api/admin/schedules/:scheduleId', async (req, res) => {
-  try {
-    const { scheduleId } = req.params;
-    console.log(`Обновление расписания ${scheduleId}:`, req.body);
-    
-    const scheduleRef = adminDb.ref(`schedules/${scheduleId}`);
-    await scheduleRef.update(req.body);
-    
-    console.log(`Расписание ${scheduleId} обновлено`);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Ошибка обновления расписания:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
-
-// Удаление расписания
-app.delete('/api/admin/schedules/:scheduleId', async (req, res) => {
-  try {
-    const { scheduleId } = req.params;
-    console.log(`Удаление расписания ${scheduleId}`);
-    
-    const scheduleRef = adminDb.ref(`schedules/${scheduleId}`);
-    await scheduleRef.remove();
-    
-    console.log(`Расписание ${scheduleId} удалено`);
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Ошибка удаления расписания:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
+  ];
+  
+  res.json(tours);
 });
 
 /* ================= HEALTH CHECK ================= */
