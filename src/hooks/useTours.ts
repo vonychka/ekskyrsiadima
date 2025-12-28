@@ -114,22 +114,24 @@ export const useTours = () => {
 
       if (toursSnapshot.exists()) {
         const toursData = toursSnapshot.val();
-        const newTours = Object.entries(toursData).map(([id, data]: [string, any]) => ({
-          ...data,
-          id,
-          loading: 'lazy',
-          fetchpriority: page === 1 ? 'high' : 'low'
+        const toursArray = Object.keys(toursData).map(key => ({
+          ...toursData[key] as any,
+          id: key
         }));
-
+        
         const schedulesData = schedulesSnapshot.exists() 
           ? Object.values(schedulesSnapshot.val()) 
           : [];
+        const schedulesArray = Object.keys(schedulesData).map(key => ({
+          ...schedulesData[key] as any,
+          id: key
+        }));
         
-        saveToCache(newTours, schedulesData);
+        saveToCache(toursArray, schedulesArray);
         
-        setTours(newTours);
-        setSchedules(schedulesData);
-        setHasMore(newTours.length === ITEMS_PER_PAGE * page);
+        setTours(toursArray);
+        setSchedules(schedulesArray);
+        setHasMore(toursArray.length === ITEMS_PER_PAGE * page);
       } else {
         setHasMore(false);
       }
@@ -231,33 +233,21 @@ export const useTours = () => {
     }
   }, []);
 
-  const updateTour = useCallback(async (tourId: string, tourData: Omit<Tour, 'id'>) => {
+  const updateTour = useCallback(async (tourId: string, tourData: Partial<Tour>) => {
     try {
-      setLoading(true);
       console.log('Updating tour in Firebase:', { tourId, tourData });
       
       // Обновляем в Firebase
       await update(ref(database, `tours/${tourId}`), {
         ...tourData,
-        updatedAt: Date.now() // Добавляем метку времени обновления
+        updatedAt: new Date().toISOString()
       });
-
+      
       // Обновляем локальное состояние
-      setTours(prevTours => 
-        prevTours.map(tour => 
-          tour.id === tourId ? { ...tour, ...tourData } : tour
-        )
-      );
-
-      // Обновляем кэш
-      const cachedData = loadFromCache();
-      if (cachedData.isValid) {
-        const updatedTours = cachedData.tours.map(tour => 
-          tour.id === tourId ? { ...tour, ...tourData } : tour
-        );
-        saveToCache(updatedTours, cachedData.schedules);
-      }
-
+      setTours(prev => prev.map((tour: Tour) => 
+        tour.id === tourId ? { ...tour, ...tourData } : tour
+      ));
+      
       console.log('Tour updated successfully');
       return true;
     } catch (error) {
@@ -327,7 +317,7 @@ export const useTours = () => {
   }, []);
 
   // In useTours.ts
-const deleteSchedule = useCallback(async (scheduleId: string, isUserAuthenticated: boolean) => {
+const deleteSchedule = useCallback(async (scheduleId: string, _isUserAuthenticated: boolean) => {
   try {
     console.log('Попытка удаления расписания с ID:', scheduleId);
     const scheduleRef = ref(database, `schedules/${scheduleId}`);
