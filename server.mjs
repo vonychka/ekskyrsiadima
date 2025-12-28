@@ -79,6 +79,14 @@ app.post('/api/tinkoff-working', async (req, res) => {
     console.log('=== ИСПОЛЬЗУЕМ БИБЛИОТЕКУ ТИНЬКОФФ ===');
     console.log('REQUEST DATA:', req.body);
 
+    // Валидация обязательных полей
+    if (!req.body.orderId || !req.body.amount) {
+      return res.status(400).json({
+        success: false,
+        error: 'OrderId и Amount обязательны'
+      });
+    }
+
     const requestData = {
       ...req.body,
       TerminalKey: CONFIG.TERMINAL_KEY,
@@ -225,10 +233,30 @@ let localSchedules = [
   }
 ];
 
-// Получаем расписания (без Firebase)
+// Получаем расписания из Firebase админки
 const getAdminSchedules = async () => {
-  console.log('Используем локальные расписания:', localSchedules.length);
-  return localSchedules;
+  try {
+    console.log('Получение расписаний из Firebase админки...');
+    const schedulesRef = ref(database, 'schedules');
+    const snapshot = await get(schedulesRef);
+    
+    if (snapshot.exists()) {
+      const schedules = snapshot.val();
+      const schedulesArray = Object.values(schedules).map(schedule => ({
+        ...schedule,
+        id: Object.keys(schedules).find(key => schedules[key] === schedule)
+      }));
+      console.log(`Найдено расписаний в админке: ${schedulesArray.length}`);
+      return schedulesArray;
+    } else {
+      console.log('Расписания в админке не найдены, используем локальные');
+      return localSchedules;
+    }
+  } catch (error) {
+    console.error('Ошибка получения расписаний из Firebase:', error);
+    console.log('Используем локальные расписания как fallback');
+    return localSchedules;
+  }
 };
 
 app.get('/api/tour-schedules/:tourId', async (req, res) => {
@@ -281,7 +309,7 @@ app.post('/api/book-schedule', async (req, res) => {
     
     console.log(`Попытка бронирования ${numberOfPeople} мест для расписания ${scheduleId}`);
     
-    // Находим расписание в локальных данных
+    // Получаем расписания из Firebase админки
     const adminSchedules = await getAdminSchedules();
     const schedule = adminSchedules.find(s => s.id === scheduleId);
     
@@ -296,22 +324,39 @@ app.post('/api/book-schedule', async (req, res) => {
       });
     }
     
-    // Бронируем места в локальном хранилище
-    const scheduleIndex = localSchedules.findIndex(s => s.id === scheduleId);
-    if (scheduleIndex !== -1) {
-      localSchedules[scheduleIndex].availableSpots -= numberOfPeople;
-      localSchedules[scheduleIndex].bookedSpots += numberOfPeople;
+    // Обновляем расписание в Firebase
+    const updatedSchedule = {
+      ...schedule,
+      availableSpots: schedule.availableSpots - numberOfPeople,
+      bookedSpots: (schedule.bookedSpots || 0) + numberOfPeople
+    };
+    
+    try {
+      const scheduleRef = ref(database, `schedules/${scheduleId}`);
+      await update(scheduleRef, {
+        availableSpots: updatedSchedule.availableSpots,
+        bookedSpots: updatedSchedule.bookedSpots
+      });
+      console.log(`Расписание ${scheduleId} обновлено в Firebase`);
+    } catch (firebaseError) {
+      console.error('Ошибка обновления в Firebase:', firebaseError);
+      // Обновляем локально как fallback
+      const scheduleIndex = localSchedules.findIndex(s => s.id === scheduleId);
+      if (scheduleIndex !== -1) {
+        localSchedules[scheduleIndex].availableSpots = updatedSchedule.availableSpots;
+        localSchedules[scheduleIndex].bookedSpots = updatedSchedule.bookedSpots;
+      }
     }
     
-    console.log(`Забронировано ${numberOfPeople} мест для расписания ${scheduleId}. Осталось: ${localSchedules[scheduleIndex].availableSpots}`);
+    console.log(`Забронировано ${numberOfPeople} мест для расписания ${scheduleId}. Осталось: ${updatedSchedule.availableSpots}`);
     
     res.json({
       success: true,
       scheduleId: scheduleId,
       bookedSlots: numberOfPeople,
-      availableSpots: localSchedules[scheduleIndex].availableSpots,
+      availableSpots: updatedSchedule.availableSpots,
       maxSpots: schedule.maxSpots,
-      source: 'local'
+      source: 'firebase'
     });
   } catch (error) {
     console.error('Ошибка бронирования расписания:', error);
@@ -384,6 +429,33 @@ ID платежа: ${paymentId}
       error: 'Ошибка при отправке данных в Telegram',
       details: error.message 
     });
+  }
+});
+
+/* ================= TOURS API ================= */
+app.get('/api/tours', async (req, res) => {
+  try {
+    console.log('Получение списка туров');
+    
+    // Получаем туры из Firebase
+    const toursRef = ref(database, 'tours');
+    const snapshot = await get(toursRef);
+    
+    if (snapshot.exists()) {
+      const tours = snapshot.val();
+      const toursArray = Object.values(tours).map(tour => ({
+        ...tour,
+        id: Object.keys(tours).find(key => tours[key] === tour)
+      }));
+      console.log(`Найдено туров: ${toursArray.length}`);
+      res.json(toursArray);
+    } else {
+      console.log('Туры не найдены, возвращаем пустой массив');
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('Ошибка получения туров:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
