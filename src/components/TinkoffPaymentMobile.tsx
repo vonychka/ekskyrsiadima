@@ -45,8 +45,7 @@ const TinkoffPaymentMobile: React.FC<TinkoffPaymentMobileProps> = ({
           description,
           email,
           phone,
-          customerKey: email || orderId,
-          userAgent: navigator.userAgent,
+          customerKey: email || orderId
         }),
       });
 
@@ -54,37 +53,35 @@ const TinkoffPaymentMobile: React.FC<TinkoffPaymentMobileProps> = ({
       console.log('Tinkoff response:', data);
 
       if (!response.ok) {
-        throw new Error(
-          data?.Message ||
-            data?.message ||
-            'Ошибка инициализации платежа'
-        );
+        throw new Error(data?.Message || data?.message || data?.error || 'Ошибка при инициализации платежа');
       }
 
-      if (!data.Success || !data.PaymentURL) {
-        throw new Error(data?.Message || 'Тинькофф вернул ошибку');
+      if (data.Success) {
+        if (data.PaymentURL) {
+          // сохраняем данные для чека
+          const paymentData = {
+            fullName,
+            phone,
+            email,
+            description,
+            amount,
+            paymentId: data.PaymentId,
+            paymentMethod: 'Tinkoff',
+          };
+
+          localStorage.setItem(
+            'pendingTicketData',
+            JSON.stringify(paymentData)
+          );
+
+          onSuccess?.(data.PaymentURL);
+          window.location.href = data.PaymentURL;
+        } else {
+          throw new Error('Не получена ссылка на оплату');
+        }
+      } else {
+        throw new Error(data.Message || 'Ошибка от Тинькофф');
       }
-
-      // сохраняем данные для чека
-      const paymentData = {
-        fullName,
-        phone,
-        email,
-        description,
-        amount,
-        paymentId: data.PaymentId,
-        paymentMethod: 'Tinkoff',
-      };
-
-      localStorage.setItem(
-        'pendingTicketData',
-        JSON.stringify(paymentData)
-      );
-
-      onSuccess?.(data.PaymentURL);
-
-      // 🔥 самый надёжный редирект
-      window.location.href = data.PaymentURL;
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Неизвестная ошибка';
