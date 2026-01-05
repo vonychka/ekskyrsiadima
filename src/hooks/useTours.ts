@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tour, TourSchedule } from '../types';
 import { tours as initialTours, tourSchedules as initialSchedules } from '../data/tours';
 import { database } from '../firebase/config';
-import { ref, set, get, update, remove, query, orderByChild, limitToFirst } from 'firebase/database';
+// @ts-ignore - Temporary fix for Firebase import issues
+import * as databaseFunctions from 'firebase/database';
+const { ref, set, get, update, remove, query, orderByChild, limitToFirst } = databaseFunctions;
 
 // Ключи для кэширования
 const CACHE_KEYS = {
