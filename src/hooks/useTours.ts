@@ -2,9 +2,23 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tour, TourSchedule } from '../types';
 import { tours as initialTours, tourSchedules as initialSchedules } from '../data/tours';
 import { database } from '../firebase/config';
-// @ts-ignore - Firebase import issues - using require as workaround
-const firebaseDatabase = require('firebase/database');
-const { ref, set, get, update, remove, query, orderByChild, limitToFirst } = firebaseDatabase;
+import { 
+  ref, 
+  set as firebaseSet, 
+  get as firebaseGet, 
+  update as firebaseUpdate, 
+  remove as firebaseRemove, 
+  query as firebaseQuery, 
+  orderByChild, 
+  limitToFirst 
+} from 'firebase/database';
+
+// Aliases for cleaner code
+const set = firebaseSet;
+const get = firebaseGet;
+const update = firebaseUpdate;
+const remove = firebaseRemove;
+const query = firebaseQuery;
 
 // Ключи для кэширования
 const CACHE_KEYS = {
