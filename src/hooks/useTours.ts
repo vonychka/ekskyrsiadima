@@ -2,23 +2,17 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tour, TourSchedule } from '../types';
 import { tours as initialTours, tourSchedules as initialSchedules } from '../data/tours';
 import { database } from '../firebase/config';
+// @ts-ignore - Firebase types issue with current setup
 import { 
   ref, 
-  set as firebaseSet, 
-  get as firebaseGet, 
-  update as firebaseUpdate, 
-  remove as firebaseRemove, 
-  query as firebaseQuery, 
+  set, 
+  get, 
+  update, 
+  remove, 
+  query, 
   orderByChild, 
   limitToFirst 
 } from 'firebase/database';
-
-// Aliases for cleaner code
-const set = firebaseSet;
-const get = firebaseGet;
-const update = firebaseUpdate;
-const remove = firebaseRemove;
-const query = firebaseQuery;
 
 // Ключи для кэширования
 const CACHE_KEYS = {
