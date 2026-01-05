@@ -226,8 +226,13 @@ export const useTours = () => {
     try {
       await set(ref(database, `tours/${newTour.id}`), newTour);
       
-      // Обновляем локальное состояние
-      setTours(prev => [...prev, newTour]);
+      // Обновляем локальное состояние и кэш
+      setTours(prev => {
+        const updatedTours = [...prev, newTour];
+        // Обновляем кэш с новыми данными
+        saveToCache(updatedTours, schedules);
+        return updatedTours;
+      });
       console.log('Локальное состояние туров обновлено после добавления');
       
       return newTour;
@@ -236,7 +241,7 @@ export const useTours = () => {
       setError('Ошибка добавления тура');
       throw error;
     }
-  }, []);
+  }, [schedules]);
 
   const updateTour = useCallback(async (tourId: string, tourData: Partial<Tour>) => {
     try {
@@ -249,9 +254,16 @@ export const useTours = () => {
       });
       
       // Обновляем локальное состояние
-      setTours(prev => prev.map((tour: Tour) => 
-        tour.id === tourId ? { ...tour, ...tourData } : tour
-      ));
+      setTours(prev => {
+        const updatedTours = prev.map((tour: Tour) => 
+          tour.id === tourId ? { ...tour, ...tourData, updatedAt: new Date().toISOString() } : tour
+        );
+        
+        // Обновляем кэш с новыми данными
+        saveToCache(updatedTours, schedules);
+        
+        return updatedTours;
+      });
       
       console.log('Tour updated successfully');
       return true;
@@ -259,10 +271,8 @@ export const useTours = () => {
       console.error('Error updating tour:', error);
       setError('Ошибка обновления тура');
       return false;
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, [schedules]);
 
   const deleteTour = useCallback(async (tourId: string) => {
     console.log('deleteTour called with tourId:', tourId);
@@ -289,9 +299,22 @@ export const useTours = () => {
         console.log('All related schedules removed');
       }
       
-      // Обновляем локальное состояние
-      setTours(prev => prev.filter(tour => tour.id !== tourId));
-      setSchedules(prev => prev.filter(schedule => schedule.tourId !== tourId));
+      // Обновляем локальное состояние и кэш
+      setTours(prev => {
+        const updatedTours = prev.filter(tour => tour.id !== tourId);
+        return updatedTours;
+      });
+      setSchedules(prev => {
+        const updatedSchedules = prev.filter(schedule => schedule.tourId !== tourId);
+        return updatedSchedules;
+      });
+      
+      // Обновляем кэш после удаления
+      setTimeout(() => {
+        const currentTours = tours.filter(tour => tour.id !== tourId);
+        const currentSchedules = schedules.filter(schedule => schedule.tourId !== tourId);
+        saveToCache(currentTours, currentSchedules);
+      }, 0);
       console.log('Локальное состояние тура и связанных расписаний обновлено');
       
       console.log('deleteTour completed successfully');
