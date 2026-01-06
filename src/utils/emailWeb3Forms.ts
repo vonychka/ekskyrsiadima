@@ -19,25 +19,44 @@ export const sendTicketEmailWeb3Forms = async (bookingData: any) => {
     formData.append('paymentMethod', bookingData.paymentMethod || '');
     formData.append('paymentId', bookingData.paymentId || '');
     formData.append('access_key', '2fa79352-bf0c-4752-8a27-8e63f0c864d3');
+    
+    // Красивый subject для email
+    formData.append('subject', `🎫 Ваш билет на экскурсию: ${bookingData.tourTitle}`);
 
     // HTML сообщение для email
     const htmlMessage = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2c5282;">🎫 Билет на экскурсию</h2>
-        <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p><strong>ФИО:</strong> ${bookingData.fullName}</p>
-          <p><strong>Телефон:</strong> ${bookingData.phone}</p>
-          <p><strong>Email:</strong> ${bookingData.email}</p>
-          <p><strong>Экскурсия:</strong> ${bookingData.tourTitle}</p>
-          <p><strong>Дата:</strong> ${bookingData.tourDate}</p>
-          <p><strong>Время:</strong> ${bookingData.tourTime}</p>
-          <p><strong>Количество человек:</strong> ${bookingData.numberOfPeople}</p>
-          <p><strong>Тариф:</strong> ${bookingData.selectedTariff}</p>
-          <p><strong>Стоимость:</strong> ${bookingData.finalPrice} ₽</p>
-          <p><strong>Способ оплаты:</strong> ${bookingData.paymentMethod}</p>
-          <p><strong>ID платежа:</strong> ${bookingData.paymentId}</p>
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px;">
+        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #2c5282; margin: 0; font-size: 28px;">🎫 Ваш билет на экскурсию</h1>
+            <p style="color: #718096; margin: 10px 0 0 0; font-size: 16px;">Спасибо за покупку! Ждем вас на экскурсии.</p>
+          </div>
+          
+          <div style="background: #f8fafc; padding: 25px; border-radius: 10px; border-left: 4px solid #667eea; margin: 20px 0;">
+            <h3 style="color: #2c5282; margin-top: 0; font-size: 18px;">📍 Информация об экскурсии</h3>
+            <p style="margin: 8px 0; color: #4a5568;"><strong>Экскурсия:</strong> <span style="color: #2d3748;">${bookingData.tourTitle}</span></p>
+            <p style="margin: 8px 0; color: #4a5568;"><strong>Дата:</strong> <span style="color: #2d3748;">${bookingData.tourDate}</span></p>
+            <p style="margin: 8px 0; color: #4a5568;"><strong>Время:</strong> <span style="color: #2d3748;">${bookingData.tourTime}</span></p>
+            <p style="margin: 8px 0; color: #4a5568;"><strong>📍 Место встречи:</strong> <span style="color: #2d3748; font-weight: 600;">площадь Минина и Пожарского, 1/1</span></p>
+            <p style="margin: 8px 0; color: #4a5568;"><strong>Количество человек:</strong> <span style="color: #2d3748;">${bookingData.numberOfPeople}</span></p>
+            <p style="margin: 8px 0; color: #4a5568;"><strong>Тариф:</strong> <span style="color: #2d3748;">${bookingData.selectedTariff}</span></p>
+            <p style="margin: 8px 0; color: #4a5568;"><strong>💰 Стоимость:</strong> <span style="color: #2d3748; font-size: 18px; font-weight: bold;">${bookingData.finalPrice} ₽</span></p>
+          </div>
+          
+          <div style="background: #edf2f7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #2c5282; margin-top: 0; font-size: 16px;">👤 Данные клиента</h3>
+            <p style="margin: 5px 0; color: #4a5568;"><strong>ФИО:</strong> ${bookingData.fullName}</p>
+            <p style="margin: 5px 0; color: #4a5568;"><strong>Телефон:</strong> ${bookingData.phone}</p>
+            <p style="margin: 5px 0; color: #4a5568;"><strong>Email:</strong> ${bookingData.email}</p>
+            <p style="margin: 5px 0; color: #4a5568;"><strong>Способ оплаты:</strong> ${bookingData.paymentMethod}</p>
+            ${bookingData.paymentId ? `<p style="margin: 5px 0; color: #4a5568;"><strong>ID платежа:</strong> ${bookingData.paymentId}</p>` : ''}
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #718096; margin: 0; font-size: 14px;">🎉 Приятной экскурсии!</p>
+            <p style="color: #a0aec0; margin: 5px 0 0 0; font-size: 12px;">С уважением, команда экскурсий</p>
+          </div>
         </div>
-        <p style="color: #718096; font-size: 14px;">Спасибо за покупку! Ждем вас на экскурсии.</p>
       </div>
     `;
     
