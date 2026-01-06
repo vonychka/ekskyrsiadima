@@ -6,20 +6,25 @@ export const sendTicketEmailWeb3Forms = async (bookingData: any) => {
 
     const formData = new FormData();
     
-    // Основные данные для Web3Forms
-    formData.append('from_name', 'Экскурсии Нижнего Новгорода');
-    formData.append('to_email', bookingData.email || '');
+    // Основные данные для Web3Forms (обязательные поля)
     formData.append('access_key', '2fa79352-bf0c-4752-8a27-8e63f0c864d3');
-    
-    // Красивый subject для email на русском
     formData.append('subject', `🎫 Ваш билет на экскурсию: ${bookingData.tourTitle}`);
     
-    // Отключаем стандартный шаблон Web3Forms
-    formData.append('template', 'false');
-    formData.append('redirect', 'false');
+    // Обязательные поля для Web3Forms
+    formData.append('fullName', bookingData.fullName || '');
+    formData.append('email', bookingData.email || '');
+    formData.append('phone', bookingData.phone || '');
+    formData.append('tourTitle', bookingData.tourTitle || '');
+    formData.append('tourDate', bookingData.tourDate || '');
+    formData.append('tourTime', bookingData.tourTime || '');
+    formData.append('numberOfPeople', String(bookingData.numberOfPeople || 1));
+    formData.append('selectedTariff', bookingData.selectedTariff || '');
+    formData.append('finalPrice', String(bookingData.finalPrice || 0));
+    formData.append('paymentMethod', bookingData.paymentMethod || '');
+    formData.append('paymentId', bookingData.paymentId || '');
     
-    // Добавляем только HTML сообщение без полей формы
-    formData.append('message', '');
+    // Используем HTML template вместо plain text
+    formData.append('html', 'true');
 
     // HTML сообщение для email на русском
     const htmlContent = `
