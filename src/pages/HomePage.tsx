@@ -3,7 +3,7 @@ import { useOptimizedTours } from '../hooks/useOptimizedTours';
 import TourCard from '../components/TourCard';
 import StaticReviewsSection from '../components/StaticReviewsSection';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { ScheduleBookingTestButton } from '../components/ScheduleBookingTestButton';
+import { TestTicketEmailButton } from '../components/TestTicketEmailButton';
 import { getNearestTourSpots } from '../data/tours';
 import { Tour } from '../types';
 
@@ -107,97 +107,97 @@ const HomePage: React.FC = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center text-white -mt-12 md:-mt-8">
           <h1
-  className="
-    w-full
-    max-w-md
-    mx-auto
-    px-4
-    text-5xl
-    leading-tight
-    font-extrabold
-    mb-6
-    tracking-tight
-    md:px-0
-    md:max-w-none
-    md:text-6xl
-    lg:text-7xl
-  "
->
- <span
-  className="
-    block
-    text-white
-    bg-gradient-to-r from-white to-blue-100
-    bg-clip-text text-transparent
-    font-black
-    rotate-[-1deg]
-    inline-block
-  "
->
-  Прогулка
-</span>
-
-<span
-  className="
-    block
-    text-yellow-300
-    text-20xl -mt-2
-    font-semibold
-    tracking-wide
-    rotate-[0.5deg]
-    inline-block
-    md:text-5xl
-    lg:text-60xl
-  "
->
-  с Бояриным
-</span>
-
-  <span
-    className="
-      block
-      text-blue-100
-      text-lg
-      mt-0
-      font-normal
-      tracking-wide
-      md:text-2xl
-      lg:text-3xl
-    "
-  >
-    <span
       className="
-        block
-        italic
-        rotate-[-0.5deg]
-        transition-transform duration-300
-        hover:scale-105
+        w-full
+        max-w-md
+        mx-auto
+        px-4
+        text-5xl
+        leading-[1.05]
+        font-extrabold
+        mb-3
+        tracking-tight
+        md:px-0
+        md:max-w-none
+        md:text-6xl
+        lg:text-7xl
       "
     >
-      эмоции и приключения
-    </span>
-
-    <span className="block mt-0">
       <span
         className="
+          block
+          bg-gradient-to-r from-white to-blue-100
+          bg-clip-text text-transparent
+          font-black
+          rotate-[-1deg]
           inline-block
-          bg-yellow-400
-          text-blue-900
-          px-6 py-3
-          rounded-full
-          text-base
-          font-semibold
-          tracking-wide
-          shadow-md
-          rotate-[1deg]
-          md:text-lg
+          mb-0
         "
       >
-        купи билет сейчас
+        Прогулка
       </span>
-    </span>
-  </span>
-</h1>
+
+      <span
+        className="
+          block
+          text-yellow-300
+          -mt-2
+          font-semibold
+          tracking-tight
+          rotate-[0.5deg]
+          inline-block
+          md:text-5xl
+          lg:text-6xl
+        "
+      >
+        с Дедом
+      </span>
+
+      <span
+        className="
+          block
+          text-blue-100
+          text-base
+          -mt-1
+          font-normal
+          tracking-tight
+          md:text-xl
+          lg:text-2xl
+        "
+      >
+        <span
+          className="
+            block
+            italic
+            rotate-[-0.5deg]
+            transition-transform duration-300
+            hover:scale-105
+          "
+        >
+          эмоции и приключения
+        </span>
+
+        <span className="block mt-2">
+          <span
+            className="
+              inline-block
+              bg-yellow-400
+              text-blue-900
+              px-5 py-2
+              rounded-full
+              text-sm
+              font-semibold
+              tracking-wide
+              shadow-md
+              rotate-[1deg]
+              md:text-base
+            "
+          >
+            купи билет сейчас
+          </span>
+        </span>
+      </span>
+    </h1>
 
 
 
@@ -345,10 +345,10 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Schedule Booking Test Section */}
-      <section className="py-12 bg-white">
+      {/* Test Email Ticket Section */}
+      <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
-          <ScheduleBookingTestButton />
+          <TestTicketEmailButton />
         </div>
       </section>
 
