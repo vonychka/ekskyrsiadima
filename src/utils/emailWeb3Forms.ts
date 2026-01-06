@@ -6,25 +6,23 @@ export const sendTicketEmailWeb3Forms = async (bookingData: any) => {
 
     const formData = new FormData();
     
-    // Основные данные
-    formData.append('fullName', bookingData.fullName || '');
-    formData.append('phone', bookingData.phone || '');
-    formData.append('email', bookingData.email || '');
-    formData.append('tourTitle', bookingData.tourTitle || '');
-    formData.append('tourDate', bookingData.tourDate || '');
-    formData.append('tourTime', bookingData.tourTime || '');
-    formData.append('numberOfPeople', String(bookingData.numberOfPeople || 1));
-    formData.append('selectedTariff', bookingData.selectedTariff || '');
-    formData.append('finalPrice', String(bookingData.finalPrice || 0));
-    formData.append('paymentMethod', bookingData.paymentMethod || '');
-    formData.append('paymentId', bookingData.paymentId || '');
+    // Основные данные для Web3Forms
+    formData.append('from_name', 'Экскурсии Нижнего Новгорода');
+    formData.append('to_email', bookingData.email || '');
     formData.append('access_key', '2fa79352-bf0c-4752-8a27-8e63f0c864d3');
     
-    // Красивый subject для email
+    // Красивый subject для email на русском
     formData.append('subject', `🎫 Ваш билет на экскурсию: ${bookingData.tourTitle}`);
+    
+    // Отключаем стандартный шаблон Web3Forms
+    formData.append('template', 'false');
+    formData.append('redirect', 'false');
+    
+    // Добавляем только HTML сообщение без полей формы
+    formData.append('message', '');
 
-    // HTML сообщение для email
-    const htmlMessage = `
+    // HTML сообщение для email на русском
+    const htmlContent = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px;">
         <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
           <div style="text-align: center; margin-bottom: 30px;">
@@ -60,7 +58,8 @@ export const sendTicketEmailWeb3Forms = async (bookingData: any) => {
       </div>
     `;
     
-    formData.append('message', htmlMessage);
+    // Используем HTML контент вместо message
+    formData.append('message', htmlContent);
 
     // Отправка в Web3Forms
     const response = await fetch('https://api.web3forms.com/submit', {
