@@ -3,7 +3,6 @@ import { useOptimizedTours } from '../hooks/useOptimizedTours';
 import TourCard from '../components/TourCard';
 import StaticReviewsSection from '../components/StaticReviewsSection';
 import SkeletonLoader from '../components/SkeletonLoader';
-import { TestTicketEmailButton } from '../components/TestTicketEmailButton';
 import { getNearestTourSpots } from '../data/tours';
 import { Tour } from '../types';
 
@@ -345,13 +344,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Test Email Ticket Section */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <TestTicketEmailButton />
-        </div>
-      </section>
-
+      
       </div>
   );
 };
