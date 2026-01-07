@@ -73,18 +73,46 @@ export const useOptimizedTours = () => {
     setLoading(true);
     
     try {
-      // Load all data in parallel with timeout for faster response
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Loading timeout')), 3000)
-      );
+      // Retry mechanism for Firebase connection
+      let retryCount = 0;
+      const maxRetries = 3;
+      let toursSnapshot, schedulesSnapshot;
       
-      const [toursSnapshot, schedulesSnapshot] = await Promise.race([
-        Promise.all([
-          get(ref(database, 'tours')),
-          get(ref(database, 'schedules'))
-        ]),
-        timeoutPromise
-      ]) as [any, any];
+      while (retryCount < maxRetries) {
+        try {
+          console.log(`Попытка загрузки данных из Firebase (попытка ${retryCount + 1}/${maxRetries})`);
+          
+          // Load all data in parallel with longer timeout
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Loading timeout')), 5000)
+          );
+          
+          [toursSnapshot, schedulesSnapshot] = await Promise.race([
+            Promise.all([
+              get(ref(database, 'tours')),
+              get(ref(database, 'schedules'))
+            ]),
+            timeoutPromise
+          ]) as [any, any];
+          
+          // If we got here, loading was successful
+          console.log('Данные успешно загружены из Firebase');
+          break;
+          
+        } catch (loadError) {
+          retryCount++;
+          console.error(`Ошибка загрузки (попытка ${retryCount}):`, loadError);
+          
+          if (retryCount >= maxRetries) {
+            throw loadError;
+          }
+          
+          // Wait before retry with exponential backoff
+          const delay = Math.pow(2, retryCount) * 1000; // 2s, 4s, 8s
+          console.log(`Повторная попытка через ${delay/1000} секунд...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
       
       let toursData: Tour[] = [];
       let schedulesData: TourSchedule[] = [];
@@ -119,27 +147,60 @@ export const useOptimizedTours = () => {
       localStorage.setItem('lastFetchTime', now.toString());
       
     } catch (err) {
-      console.error('Error loading tours:', err);
+      console.error('Error loading tours after retries:', err);
       setError('Ошибка загрузки туров');
       
-      // If timeout error, try to load from cache as fallback
-      if (err instanceof Error && err.message === 'Loading timeout') {
-        console.log('Loading timeout, using cached data as fallback');
-        if (toursCache && schedulesCache) {
-          setTours(toursCache);
-          setSchedules(schedulesCache);
-          setError(null);
-        }
+      // Always try to show some data, never leave empty screen
+      let hasFallbackData = false;
+      
+      // Try memory cache first
+      if (toursCache && schedulesCache) {
+        console.log('Using memory cache as fallback');
+        setTours(toursCache);
+        setSchedules(schedulesCache);
+        setError(null);
+        hasFallbackData = true;
       } else {
-        // Try to load from localStorage if available
+        // Try localStorage
         const cachedTours = localStorage.getItem('toursCache');
         const cachedSchedules = localStorage.getItem('schedulesCache');
         
         if (cachedTours && cachedSchedules) {
+          console.log('Using localStorage cache as fallback');
           setTours(JSON.parse(cachedTours));
           setSchedules(JSON.parse(cachedSchedules));
           setError(null);
+          hasFallbackData = true;
+        } else {
+          // Last resort - show demo data to prevent empty screen
+          console.log('Using demo data as last resort');
+          const demoTours = [
+            {
+              id: 'demo-1',
+              title: 'Прогулка с Дедом Морозом',
+              description: 'Увлекательная экскурсия по зимнему Нижнему Новгороду',
+              price: 1500,
+              maxGroupSize: 20,
+              duration: '2 часа',
+              image: '/api/placeholder/400/300',
+              loading: 'lazy',
+              fetchpriority: 'high'
+            }
+          ];
+          setTours(demoTours);
+          setSchedules([]);
+          setError('Показаны демо данные. Обновите страницу позже.');
+          hasFallbackData = true;
         }
+      }
+      
+      // If we have fallback data, try to reload in background after delay
+      if (hasFallbackData) {
+        console.log('Will retry loading in background after 30 seconds');
+        setTimeout(() => {
+          console.log('Background retry attempt...');
+          loadTours(true); // Force refresh
+        }, 30000);
       }
     } finally {
       setLoading(false);
