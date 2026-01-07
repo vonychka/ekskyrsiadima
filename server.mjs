@@ -168,6 +168,87 @@ app.post('/api/tinkoff-working', async (req, res) => {
   }
 });
 
+/* ================= HANDLE SUCCESSFUL PAYMENT ================= */
+const handleSuccessfulPayment = async (paymentData) => {
+  try {
+    console.log('=== HANDLING SUCCESSFUL PAYMENT ===');
+    console.log('Payment data:', paymentData);
+    
+    // Извлекаем данные из платежа
+    const { OrderId, Description } = paymentData;
+    
+    // Ищем заказ в базе данных или используем данные из описания
+    // Предполагаем что в описании есть информация о туре и количестве мест
+    // Format: "Бронирование: tourId=xxx, seats=xx, scheduleId=xxx"
+    let tourId = null;
+    let numberOfPeople = 1;
+    let scheduleId = null;
+    
+    if (Description && Description.includes('tourId=')) {
+      const tourMatch = Description.match(/tourId=([^,]+)/);
+      const seatsMatch = Description.match(/seats=([^,]+)/);
+      const scheduleMatch = Description.match(/scheduleId=([^,]+)/);
+      
+      if (tourMatch) tourId = tourMatch[1];
+      if (seatsMatch) numberOfPeople = parseInt(seatsMatch[1]);
+      if (scheduleMatch) scheduleId = scheduleMatch[1];
+    }
+    
+    console.log(`Processing booking: tourId=${tourId}, seats=${numberOfPeople}, scheduleId=${scheduleId}`);
+    
+    if (!tourId) {
+      console.log('No tourId found in payment description');
+      return;
+    }
+    
+    // Уменьшаем места в расписании если указано
+    if (scheduleId) {
+      const scheduleRef = ref(database, `schedules/${scheduleId}`);
+      const scheduleSnapshot = await get(scheduleRef);
+      
+      if (scheduleSnapshot.exists()) {
+        const schedule = scheduleSnapshot.val();
+        const currentAvailableSpots = schedule.availableSpots || 0;
+        const newAvailableSpots = Math.max(0, currentAvailableSpots - numberOfPeople);
+        
+        await update(scheduleRef, {
+          availableSpots: newAvailableSpots,
+          updatedAt: new Date().toISOString()
+        });
+        
+        console.log(`Updated schedule ${scheduleId} availableSpots: ${currentAvailableSpots} -> ${newAvailableSpots}`);
+      } else {
+        console.log(`Schedule ${scheduleId} not found`);
+      }
+    } else {
+      // Уменьшаем maxGroupSize для тура если нет расписания
+      const tourRef = ref(database, `tours/${tourId}`);
+      const tourSnapshot = await get(tourRef);
+      
+      if (tourSnapshot.exists()) {
+        const tour = tourSnapshot.val();
+        const currentMaxGroupSize = tour.maxGroupSize || 10;
+        const newMaxGroupSize = Math.max(0, currentMaxGroupSize - numberOfPeople);
+        
+        await update(tourRef, {
+          maxGroupSize: newMaxGroupSize,
+          updatedAt: new Date().toISOString()
+        });
+        
+        console.log(`Updated tour ${tourId} maxGroupSize: ${currentMaxGroupSize} -> ${newMaxGroupSize}`);
+      } else {
+        console.log(`Tour ${tourId} not found`);
+      }
+    }
+    
+    console.log('=== PAYMENT BOOKING HANDLED SUCCESSFULLY ===');
+    
+  } catch (error) {
+    console.error('Error in handleSuccessfulPayment:', error);
+    throw error;
+  }
+};
+
 /* ================= WEBHOOK ================= */
 app.post('/api/tinkoff-webhook', async (req, res) => {
   try {
@@ -186,6 +267,13 @@ app.post('/api/tinkoff-webhook', async (req, res) => {
     // Здесь можно добавить логику обработки статуса платежа
     if (req.body.Status === 'CONFIRMED') {
       console.log('Payment confirmed:', req.body.OrderId);
+      
+      // Уменьшаем количество мест после успешной оплаты
+      try {
+        await handleSuccessfulPayment(req.body);
+      } catch (bookingError) {
+        console.error('Error handling booking after payment:', bookingError);
+      }
     }
     
     // Ответ Тинькофф что вебхок принят

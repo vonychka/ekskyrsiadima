@@ -5,7 +5,6 @@ import StaticReviewsSection from '../components/StaticReviewsSection';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { getNearestTourSpots } from '../data/tours';
 import { Tour } from '../types';
-import { TestBookingButton } from '../components/TestBookingButton';
 
 const HomePage: React.FC = () => {
   const { tours, schedules, loading } = useOptimizedTours();
@@ -345,13 +344,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Test Booking Section */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <TestBookingButton />
-        </div>
-      </section>
-
+      
       </div>
   );
 };
