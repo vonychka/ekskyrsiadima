@@ -398,7 +398,16 @@ app.get('/api/tours', (req, res) => {
 app.get('/api/schedules', async (req, res) => {
   try {
     console.log('=== GET /api/schedules ===');
+    
+    // Проверяем инициализацию Firebase
+    if (!database) {
+      console.error('Firebase database not initialized');
+      return res.status(500).json({ error: 'База данных не инициализирована' });
+    }
+    
     const schedulesRef = ref(database, 'schedules');
+    console.log('Fetching schedules from Firebase...');
+    
     const snapshot = await get(schedulesRef);
     
     if (snapshot.exists()) {
@@ -410,12 +419,17 @@ app.get('/api/schedules', async (req, res) => {
       console.log(`Found ${schedulesArray.length} schedules`);
       res.json(schedulesArray);
     } else {
-      console.log('No schedules found');
+      console.log('No schedules found in database');
       res.json([]);
     }
   } catch (error) {
     console.error('Error fetching schedules:', error);
-    res.status(500).json({ error: 'Ошибка при загрузке расписаний' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Ошибка при загрузке расписаний',
+      details: error.message 
+    });
   }
 });
 
@@ -424,6 +438,12 @@ app.post('/api/bookings', async (req, res) => {
   try {
     console.log('=== POST /api/bookings ===');
     console.log('Request body:', req.body);
+    
+    // Проверяем инициализацию Firebase
+    if (!database) {
+      console.error('Firebase database not initialized');
+      return res.status(500).json({ error: 'База данных не инициализирована' });
+    }
     
     const { tourId, numberOfPeople } = req.body;
     
