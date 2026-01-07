@@ -38,6 +38,21 @@ export const useOptimizedTours = () => {
   const [loading, setLoading] = useState(!loadInitialData().hasCache);
   const [error, setError] = useState<string | null>(null);
 
+  // Force refresh function will be defined after loadTours
+  const forceRefresh = useCallback(() => {
+    console.log('Force refreshing tours and schedules data...');
+    // Clear cache to force fresh data
+    toursCache = null;
+    schedulesCache = null;
+    cacheState.lastFetchTime = 0;
+    localStorage.removeItem('toursCache');
+    localStorage.removeItem('schedulesCache');
+    // Set loading to true and trigger reload
+    setLoading(true);
+    // Will be called after loadTours is defined
+  }, []);
+
+  
   // Load all tours and schedules at once
   const loadTours = useCallback(async () => {
     const now = Date.now();
@@ -107,6 +122,32 @@ export const useOptimizedTours = () => {
       setLoading(false);
     }
   }, []);
+
+  // Update forceRefresh to call loadTours after it's defined
+  const updatedForceRefresh = useCallback(() => {
+    console.log('Force refreshing tours and schedules data...');
+    // Clear cache to force fresh data
+    toursCache = null;
+    schedulesCache = null;
+    cacheState.lastFetchTime = 0;
+    localStorage.removeItem('toursCache');
+    localStorage.removeItem('schedulesCache');
+    // Trigger reload
+    loadTours();
+  }, [loadTours]);
+
+  // Update event listener to use the new force refresh function
+  useEffect(() => {
+    const handleForceRefresh = () => {
+      console.log('Received force refresh event');
+      updatedForceRefresh();
+    };
+
+    window.addEventListener('forceDataRefresh', handleForceRefresh);
+    return () => {
+      window.removeEventListener('forceDataRefresh', handleForceRefresh);
+    };
+  }, [updatedForceRefresh]);
 
   // Load fresh data on mount
   useEffect(() => {

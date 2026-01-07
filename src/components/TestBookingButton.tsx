@@ -111,6 +111,44 @@ export const TestBookingButton: React.FC = () => {
               : s
           ));
         }
+        
+        // Обновляем кэш на клиенте чтобы изменения были видны везде
+        try {
+          // Обновляем кэш расписаний
+          const schedulesCache = localStorage.getItem('schedules_cache');
+          if (schedulesCache) {
+            const cachedData = JSON.parse(schedulesCache);
+            const updatedSchedules = cachedData.map((s: any) => 
+              s.id === selectedScheduleId 
+                ? { ...s, availableSpots: data.availableSpots || s.availableSpots - bookingCount }
+                : s
+            );
+            localStorage.setItem('schedules_cache', JSON.stringify(updatedSchedules));
+            console.log('Updated schedules cache with new available spots');
+          }
+          
+          // Обновляем кэш туров если нужно
+          const toursCache = localStorage.getItem('tours_cache');
+          if (toursCache) {
+            const cachedTours = JSON.parse(toursCache);
+            // Если изменились места для тура (не расписания)
+            if (!selectedScheduleId && data.availableSpots !== undefined) {
+              const updatedTours = cachedTours.map((t: any) => 
+                t.id === selectedTourId 
+                  ? { ...t, maxGroupSize: data.availableSpots }
+                  : t
+              );
+              localStorage.setItem('tours_cache', JSON.stringify(updatedTours));
+              console.log('Updated tours cache with new maxGroupSize');
+            }
+          }
+          
+          // Принудительно перезагружаем данные чтобы обновить UI
+          window.dispatchEvent(new CustomEvent('forceDataRefresh'));
+          
+        } catch (cacheError) {
+          console.error('Error updating cache:', cacheError);
+        }
       } else {
         setResult(`❌ Ошибка бронирования: ${data.message || data.error}`);
       }
