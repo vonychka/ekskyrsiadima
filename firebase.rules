@@ -5,6 +5,7 @@
     "tours": {
       ".read": true,
       ".write": true,
+      ".indexOn": ["createdAt"],
       "$tourId": {
         ".read": true,
         ".write": true
@@ -13,6 +14,7 @@
     "schedules": {
       ".read": true,
       ".write": true,
+      ".indexOn": ["createdAt", "tourId"],
       "$scheduleId": {
         ".read": true,
         ".write": true
@@ -21,6 +23,7 @@
     "bookings": {
       ".read": true,
       ".write": true,
+      ".indexOn": ["createdAt", "tourId"],
       "$bookingId": {
         ".read": true,
         ".write": true
