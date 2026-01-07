@@ -16,6 +16,22 @@ app.use(cors({
 
 app.use(express.json());
 
+/* ================= STATIC FILES & MIME TYPES ================= */
+// Serve static files with proper MIME types
+app.use(express.static('.', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (path.endsWith('.mjs')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (path.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
+    }
+  }
+}));
+
 /* ================= CONFIG ================= */
 const CONFIG = {
   TERMINAL_KEY: '1766479140318', // Рабочий терминал (подтвержден поддержкой)
