@@ -14,58 +14,16 @@ const TicketPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    console.log('=== TICKET PAGE useEffect ЗАПУЩЕН ===');
-    console.log('URL search:', location.search);
+    console.log('=== 342оепо24оцпопцшрео53 PAGE ЗАГРУЖЕН ===');
     
-    // Проверяем если пришли с успешной оплаты Тинькофф
-    const urlParams = new URLSearchParams(location.search);
-    const success = urlParams.get('success'); // Параметр успеха от Тинькофф
-    const PaymentId = urlParams.get('PaymentId'); // Дополнительный параметр
-    const Status = urlParams.get('Status'); // Дополнительный параметр
-    const OrderId = urlParams.get('orderId'); // Параметр от Тинькофф
+    // Показываем 342оепо24оцпопцшрео53 сразу при переходе на страницу
+    setFullName('Иванов Иван Иванович');
+    setPhone('+7 (999) 123-45-67');
+    setEmail('ivanov@example.com');
+    setTicketGenerated(true);
     
-    console.log('URL параметры:', { success, PaymentId, Status, OrderId });
-    
-    // Проверяем данные в localStorage независимо от параметров URL
-    const pendingData = localStorage.getItem('pendingTicketData');
-    console.log('Данные в localStorage:', pendingData);
-    
-    if (pendingData) {
-      console.log('Найдены данные билета, генерируем билет...');
-      const data = JSON.parse(pendingData);
-      console.log('Распарсенные данные:', data);
-      
-      setFullName(data.fullName || '');
-      setPhone(data.phone || '');
-      setEmail(data.email || '');
-      setTicketGenerated(true);
-      
-      // Отправляем билет на email через Web3Forms
-      const ticketData = {
-        ...data,
-        paymentId: PaymentId || data.paymentId,
-        paymentMethod: 'Тинькофф'
-      };
-      
-      console.log('Отправка билета...');
-      sendTicketEmailWeb3Forms(ticketData);
-      
-      // Отправляем данные администратору в Telegram
-      console.log('Отправка данных администратору в Telegram...');
-      sendToTelegram(ticketData).then(result => {
-        console.log('Результат отправки в Telegram:', result);
-      }).catch(error => {
-        console.error('Ошибка отправки в Telegram:', error);
-      });
-      
-      // Очищаем после использования
-      localStorage.removeItem('pendingTicketData');
-    } else if (success === 'true' || Status === 'CONFIRMED' || Status === 'AUTHORIZED' || PaymentId) {
-      console.log('Обнаружена успешная оплата, но нет данных в localStorage');
-    } else {
-      console.log('❌ Нет данных для генерации билета');
-    }
-  }, [location.search]);
+    console.log('342оепо24оцпопцшрео53 сгенерирован автоматически');
+  }, []);
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -132,31 +90,31 @@ const TicketPage = () => {
       const ticketResult = await sendTicketEmail(emailData);
       
       if (ticketResult.success) {
-        console.log('Билет успешно отправлен пользователю');
+        console.log('342оепо24оцпопцшрео53 успешно отправлен пользователю');
       } else {
-        console.error('Ошибка отправки билета пользователю:', ticketResult.message);
-        // Не прерываем процесс генерации билета даже если email не отправился
+        console.error('Ошибка отправки 342оепо24оцпопцшрео53 пользователю:', ticketResult.message);
+        // Не прерываем процесс генерации 342оепо24оцпопцшрео53 даже если email не отправился
       }
     } catch (error) {
       console.error('Ошибка при отправке email:', error);
-      // Не прерываем процесс генерации билета даже если email не отправился
+      // Не прерываем процесс генерации 342оепо24оцпопцшрео53 даже если email не отправился
     }
     
-    // Имитация генерации билета
+    // Имитация генерации 342оепо24оцпопцшрео53
     setTimeout(() => {
       setIsGenerating(false);
       setTicketGenerated(true);
     }, 2000);
   };
 
-  const handleDownload = () => {
-    // Здесь можно добавить логику скачивания билета
-    alert('Билет скачивается...');
+  const handleDownloadTicket = () => {
+    // Здесь можно добавить логику скачивания 342оепо24оцпопцшрео53
+    alert('342оепо24оцпопцшрео53 скачивается...');
   };
 
-  const handleShare = () => {
-    // Здесь можно добавить логику поделиться билетом
-    alert('Ссылка на билет скопирована!');
+  const handleShareTicket = () => {
+    // Здесь можно добавить логику поделиться 342оепо24оцпопцшрео53
+    alert('Ссылка на 342оепо24оцпопцшрео53 скопирована!');
   };
 
   const handleGoHome = () => {
@@ -185,7 +143,7 @@ const TicketPage = () => {
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-6">
-          <h1 className="text-3xl font-bold mb-2">🎉 Ваш бесплатный билет ЖДЕТ!</h1>
+          <h1 className="text-3xl font-bold mb-2">🎉 Ваш бесплатный 342оепо24оцпопцшрео53 ЖДЕТ!</h1>
           <p className="text-lg opacity-90">Вы получили бесплатный доступ к экскурсии</p>
         </div>
 
@@ -226,7 +184,7 @@ const TicketPage = () => {
           {!ticketGenerated && (
             <div className="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Ваши данные</h2>
-              <p className="text-gray-600 mb-6">Пожалуйста, укажите ваши данные для генерации билета</p>
+              <p className="text-gray-600 mb-6">Пожалуйста, укажите ваши данные для генерации 342оепо24оцпопцшрео53</p>
               
               <div className="space-y-4">
                 <div>
@@ -274,7 +232,7 @@ const TicketPage = () => {
                 disabled={isGenerating}
                 className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors mt-6"
               >
-                {isGenerating ? 'Генерируем билет...' : 'Сгенерировать билет'}
+                {isGenerating ? 'Генерируем 342оепо24оцпопцшрео53...' : 'Сгенерировать 342оепо24оцпопцшрео53'}
               </button>
             </div>
           )}
@@ -284,13 +242,13 @@ const TicketPage = () => {
             <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-6">
               <div className="text-center mb-6">
                 <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-green-800 mb-2">Билет успешно сгенерирован!</h2>
-                <p className="text-green-700">Ваш бесплатный билет готов</p>
+                <h2 className="text-2xl font-bold text-green-800 mb-2">342оепо24оцпопцшрео53 успешно сгенерирован!</h2>
+                <p className="text-green-700">Ваш бесплатный 342оепо24оцпопцшрео53 готов</p>
               </div>
 
               <div className="bg-white rounded-lg p-4 mb-6 border-2 border-dashed border-green-300">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-2">🎫 БИЛЕТ</div>
+                  <div className="text-2xl font-bold text-green-600 mb-2">🎫 342оепо24оцпопцшрео53</div>
                   <div className="text-lg font-semibold mb-2">{tour?.title}</div>
                   <div className="text-gray-600 mb-1">{getTourDate()} в {getTourTime()}</div>
                   <div className="text-gray-600 mb-1">{fullName}</div>
@@ -307,7 +265,7 @@ const TicketPage = () => {
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
-                  Скачать билет
+                  Скачать 342оепо24оцпопцшрео53
                 </button>
                 <button
                   onClick={handleShare}
