@@ -22,7 +22,6 @@ export const TestBookingButton: React.FC = () => {
   const [schedules, setSchedules] = useState<TourSchedule[]>([]);
   const [selectedTourId, setSelectedTourId] = useState<string>('');
   const [selectedScheduleId, setSelectedScheduleId] = useState<string>('');
-  const [customDate, setCustomDate] = useState<string>('');
   const [bookingCount, setBookingCount] = useState<number>(1);
 
   // Загружаем туры из Firebase
@@ -76,7 +75,6 @@ export const TestBookingButton: React.FC = () => {
       console.log('=== ТЕСТОВОЕ БРОНИРОВАНИЕ МЕСТ ===');
       console.log('Выбранный тур:', selectedTourId);
       console.log('Выбранное расписание:', selectedScheduleId);
-      console.log('Выбранная дата:', customDate);
       console.log('Количество мест:', bookingCount);
 
       let url = 'https://nextjs-boilerplateuexkyesua.onrender.com/api/bookings';
@@ -84,11 +82,6 @@ export const TestBookingButton: React.FC = () => {
         tourId: selectedTourId,
         numberOfPeople: bookingCount
       };
-
-      // Добавляем дату если выбрана
-      if (customDate) {
-        body.date = customDate;
-      }
 
       // Если выбрано конкретное расписание, добавляем его
       if (selectedScheduleId) {
@@ -159,29 +152,12 @@ export const TestBookingButton: React.FC = () => {
           </select>
         </div>
 
-        {/* Выбор даты */}
+        {/* Выбор даты/времени из админки */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Выберите дату (опционально)
+            Выберите дату и время
           </label>
-          <input
-            type="date"
-            value={customDate}
-            onChange={(e) => setCustomDate(e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Выберите дату для бронирования или оставьте пустым
-          </p>
-        </div>
-
-        {/* Выбор даты/времени если есть расписание */}
-        {schedules.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Или выберите готовое расписание
-            </label>
+          {selectedTourId && schedules.length > 0 ? (
             <select
               value={selectedScheduleId}
               onChange={(e) => setSelectedScheduleId(e.target.value)}
@@ -194,8 +170,16 @@ export const TestBookingButton: React.FC = () => {
                 </option>
               ))}
             </select>
-          </div>
-        )}
+          ) : selectedTourId ? (
+            <div className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-500">
+              Нет доступных дат для этой экскурсии
+            </div>
+          ) : (
+            <div className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-500">
+              Сначала выберите экскурсию
+            </div>
+          )}
+        </div>
 
         {/* Выбор количества мест */}
         <div>
