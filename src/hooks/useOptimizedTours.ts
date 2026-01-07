@@ -3,8 +3,8 @@ import { Tour, TourSchedule } from '../types';
 import { database } from '../firebase/config';
 import { ref, get } from 'firebase/database';
 
-// Cache TTL (5 minutes)
-const CACHE_DURATION = 5 * 60 * 1000;
+// Cache TTL (1 minute for faster updates)
+const CACHE_DURATION = 1 * 60 * 1000;
 
 // Cache for storing tours and schedules
 let toursCache: Tour[] | null = null;
@@ -54,25 +54,37 @@ export const useOptimizedTours = () => {
 
   
   // Load all tours and schedules at once
-  const loadTours = useCallback(async () => {
+  const loadTours = useCallback(async (forceRefresh = false) => {
     const now = Date.now();
     
-    // Return cached data if it's still fresh
-    if (toursCache && schedulesCache && (now - cacheState.lastFetchTime) < CACHE_DURATION) {
-      setTours(toursCache);
-      setSchedules(schedulesCache);
+    // Always load from localStorage first for instant display
+    const localData = loadInitialData();
+    if (localData.tours.length > 0 && !forceRefresh) {
+      setTours(localData.tours);
+      setSchedules(localData.schedules);
       setLoading(false);
+    }
+    
+    // Return cached data if it's still fresh and not forcing refresh
+    if (!forceRefresh && toursCache && schedulesCache && (now - cacheState.lastFetchTime) < CACHE_DURATION) {
       return;
     }
     
     setLoading(true);
     
     try {
-      // Load all data in parallel
-      const [toursSnapshot, schedulesSnapshot] = await Promise.all([
-        get(ref(database, 'tours')),
-        get(ref(database, 'schedules'))
-      ]);
+      // Load all data in parallel with timeout for faster response
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Loading timeout')), 3000)
+      );
+      
+      const [toursSnapshot, schedulesSnapshot] = await Promise.race([
+        Promise.all([
+          get(ref(database, 'tours')),
+          get(ref(database, 'schedules'))
+        ]),
+        timeoutPromise
+      ]) as [any, any];
       
       let toursData: Tour[] = [];
       let schedulesData: TourSchedule[] = [];
@@ -110,13 +122,24 @@ export const useOptimizedTours = () => {
       console.error('Error loading tours:', err);
       setError('Ошибка загрузки туров');
       
-      // Try to load from localStorage if available
-      const cachedTours = localStorage.getItem('toursCache');
-      const cachedSchedules = localStorage.getItem('schedulesCache');
-      
-      if (cachedTours && cachedSchedules) {
-        setTours(JSON.parse(cachedTours));
-        setSchedules(JSON.parse(cachedSchedules));
+      // If timeout error, try to load from cache as fallback
+      if (err instanceof Error && err.message === 'Loading timeout') {
+        console.log('Loading timeout, using cached data as fallback');
+        if (toursCache && schedulesCache) {
+          setTours(toursCache);
+          setSchedules(schedulesCache);
+          setError(null);
+        }
+      } else {
+        // Try to load from localStorage if available
+        const cachedTours = localStorage.getItem('toursCache');
+        const cachedSchedules = localStorage.getItem('schedulesCache');
+        
+        if (cachedTours && cachedSchedules) {
+          setTours(JSON.parse(cachedTours));
+          setSchedules(JSON.parse(cachedSchedules));
+          setError(null);
+        }
       }
     } finally {
       setLoading(false);
