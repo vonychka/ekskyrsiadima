@@ -8,8 +8,8 @@ const app = express();
 
 /* ================= CORS ================= */
 app.use(cors({
-  origin: ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima.ru/*', 'https://cv91330.tw1.ru', 'https://cv91330.tw1.ru/*'],
-  methods: ['POST', 'GET', 'OPTIONS'],
+  origin: ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima.ru/*', 'https://cv91330.tw1.ru', 'https://cv91330.tw1.ru/*', 'http://localhost:3000', 'http://localhost:5173'],
+  methods: ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
