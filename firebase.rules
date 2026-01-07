@@ -1,0 +1,30 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    "tours": {
+      ".read": true,
+      ".write": true,
+      "$tourId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "schedules": {
+      ".read": true,
+      ".write": true,
+      "$scheduleId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "bookings": {
+      ".read": true,
+      ".write": true,
+      "$bookingId": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}
