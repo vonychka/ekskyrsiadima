@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { createHash } from 'crypto';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, get, update, remove } from 'firebase/database';
 
 const app = express();
 
@@ -20,6 +22,21 @@ const CONFIG = {
   PASSWORD: 's9R^$NsmYPytIY#_',   // Рабочий пароль (подтвержден поддержкой)
   API_URL: 'https://securepay.tinkoff.ru/v2',
 };
+
+/* ================= FIREBASE CONFIG ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCz6v7J8k5M9hL2qN3pO4rS5tU6vW7xY8z",
+  authDomain: "ekskyrsiadima-payment-api.firebaseapp.com",
+  databaseURL: "https://ekskyrsiadima-payment-api-default-rtdb.firebaseio.com",
+  projectId: "ekskyrsiadima-payment-api",
+  storageBucket: "ekskyrsiadima-payment-api.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef123456789012345678"
+};
+
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+const database = getDatabase(firebaseApp);
 
 /* ================= TOKEN GENERATION - TINKOFF SUPPORT RULES ================= */
 const generateToken = (data) => {
