@@ -25,13 +25,13 @@ const CONFIG = {
 
 /* ================= FIREBASE CONFIG ================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyCz6v7J8k5M9hL2qN3pO4rS5tU6vW7xY8z",
-  authDomain: "ekskyrsiadima-payment-api.firebaseapp.com",
-  databaseURL: "https://ekskyrsiadima-payment-api-default-rtdb.firebaseio.com",
-  projectId: "ekskyrsiadima-payment-api",
-  storageBucket: "ekskyrsiadima-payment-api.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789012345678"
+  apiKey: "AIzaSyBE-bcqM7DM_zV8xivFKKbrSAHifIWYgps",
+  authDomain: "exursional.firebaseapp.com",
+  databaseURL: "https://exursional-default-rtdb.firebaseio.com",
+  projectId: "exursional",
+  storageBucket: "exursional.firebasestorage.app",
+  messagingSenderId: "770008017138",
+  appId: "1:770008017138:web:23909355289d478208c86b"
 };
 
 // Initialize Firebase
