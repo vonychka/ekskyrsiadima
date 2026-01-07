@@ -377,6 +377,125 @@ app.get('/api/tours', (req, res) => {
   res.json(tours);
 });
 
+/* ================= SCHEDULES API ================= */
+app.get('/api/schedules', async (req, res) => {
+  try {
+    console.log('=== GET /api/schedules ===');
+    const schedulesRef = ref(database, 'schedules');
+    const snapshot = await get(schedulesRef);
+    
+    if (snapshot.exists()) {
+      const schedules = snapshot.val();
+      const schedulesArray = Object.entries(schedules).map(([id, data]) => ({
+        id,
+        ...data
+      }));
+      console.log(`Found ${schedulesArray.length} schedules`);
+      res.json(schedulesArray);
+    } else {
+      console.log('No schedules found');
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('Error fetching schedules:', error);
+    res.status(500).json({ error: 'Ошибка при загрузке расписаний' });
+  }
+});
+
+/* ================= BOOKINGS API ================= */
+app.post('/api/bookings', async (req, res) => {
+  try {
+    console.log('=== POST /api/bookings ===');
+    console.log('Request body:', req.body);
+    
+    const { tourId, numberOfPeople } = req.body;
+    
+    if (!tourId || !numberOfPeople) {
+      return res.status(400).json({ error: 'Отсутствуют обязательные поля' });
+    }
+    
+    // Получаем информацию о туре
+    const tourRef = ref(database, `tours/${tourId}`);
+    const tourSnapshot = await get(tourRef);
+    
+    if (!tourSnapshot.exists()) {
+      return res.status(404).json({ error: 'Экскурсия не найдена' });
+    }
+    
+    const tour = tourSnapshot.val();
+    const currentMaxGroupSize = tour.maxGroupSize || 10;
+    const newMaxGroupSize = Math.max(0, currentMaxGroupSize - numberOfPeople);
+    
+    // Обновляем максимальный размер группы
+    await update(tourRef, { 
+      maxGroupSize: newMaxGroupSize,
+      updatedAt: new Date().toISOString()
+    });
+    
+    console.log(`Updated tour ${tourId} maxGroupSize: ${currentMaxGroupSize} -> ${newMaxGroupSize}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Забронировано ${numberOfPeople} место(а)`,
+      availableSpots: newMaxGroupSize,
+      tourId: tourId
+    });
+    
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ error: 'Ошибка при бронировании' });
+  }
+});
+
+app.post('/api/bookings/schedule', async (req, res) => {
+  try {
+    console.log('=== POST /api/bookings/schedule ===');
+    console.log('Request body:', req.body);
+    
+    const { scheduleId, numberOfPeople } = req.body;
+    
+    if (!scheduleId || !numberOfPeople) {
+      return res.status(400).json({ error: 'Отсутствуют обязательные поля' });
+    }
+    
+    // Получаем информацию о расписании
+    const scheduleRef = ref(database, `schedules/${scheduleId}`);
+    const scheduleSnapshot = await get(scheduleRef);
+    
+    if (!scheduleSnapshot.exists()) {
+      return res.status(404).json({ error: 'Расписание не найдено' });
+    }
+    
+    const schedule = scheduleSnapshot.val();
+    const currentAvailableSpots = schedule.availableSpots || 0;
+    
+    if (currentAvailableSpots < numberOfPeople) {
+      return res.status(400).json({ error: `Недостаточно свободных мест. Доступно: ${currentAvailableSpots}` });
+    }
+    
+    const newAvailableSpots = currentAvailableSpots - numberOfPeople;
+    
+    // Обновляем количество доступных мест
+    await update(scheduleRef, { 
+      availableSpots: newAvailableSpots,
+      updatedAt: new Date().toISOString()
+    });
+    
+    console.log(`Updated schedule ${scheduleId} availableSpots: ${currentAvailableSpots} -> ${newAvailableSpots}`);
+    
+    res.json({ 
+      success: true, 
+      message: `Забронировано ${numberOfPeople} место(а)`,
+      availableSpots: newAvailableSpots,
+      scheduleId: scheduleId
+    });
+    
+  } catch (error) {
+    console.error('Error creating schedule booking:', error);
+    res.status(500).json({ error: 'Ошибка при бронировании расписания' });
+  }
+});
+
 /* ================= HEALTH CHECK ================= */
 app.get('/api/health', (req, res) => {
   res.json({ 
