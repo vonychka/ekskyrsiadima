@@ -8,11 +8,34 @@ const app = express();
 
 /* ================= CORS ================= */
 app.use(cors({
-  origin: ['https://ekskyrsiadima.ru', 'https://ekskyrsiadima.ru/*', 'https://cv91330.tw1.ru', 'https://cv91330.tw1.ru/*', 'http://localhost:3000', 'http://localhost:5173'],
+  origin: [
+    'https://ekskyrsiadima.ru', 
+    'https://ekskyrsiadima.ru/*', 
+    'https://cv91330.tw1.ru', 
+    'https://cv91330.tw1.ru/*',
+    'http://cv91330.tw1.ru',
+    'http://cv91330.tw1.ru/*',
+    'http://localhost:3000', 
+    'http://localhost:5173'
+  ],
   methods: ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'User-Agent', 'Accept'],
   credentials: true
 }));
+
+// Additional CORS handling for mobile devices
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, User-Agent');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 app.use(express.json());
 
