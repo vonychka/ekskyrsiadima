@@ -26,47 +26,44 @@ const TicketPage = () => {
     
     console.log('URL параметры:', { success, PaymentId, Status, OrderId });
     
-    if (success === 'true' || Status === 'CONFIRMED' || Status === 'AUTHORIZED' || PaymentId) {
-      console.log('Обнаружена успешная оплата, загружаем данные...');
+    // Проверяем данные в localStorage независимо от параметров URL
+    const pendingData = localStorage.getItem('pendingTicketData');
+    console.log('Данные в localStorage:', pendingData);
+    
+    if (pendingData) {
+      console.log('Найдены данные билета, генерируем билет...');
+      const data = JSON.parse(pendingData);
+      console.log('Распарсенные данные:', data);
       
-      // Загружаем данные из localStorage если есть
-      const pendingData = localStorage.getItem('pendingTicketData');
-      console.log('Данные в localStorage:', pendingData);
+      setFullName(data.fullName || '');
+      setPhone(data.phone || '');
+      setEmail(data.email || '');
+      setTicketGenerated(true);
       
-      if (pendingData) {
-        const data = JSON.parse(pendingData);
-        console.log('Распарсенные данные:', data);
-        
-        setFullName(data.fullName || '');
-        setPhone(data.phone || '');
-        setEmail(data.email || '');
-        setTicketGenerated(true);
-        
-        // Отправляем билет на email через Web3Forms
-        const ticketData = {
-          ...data,
-          paymentId: PaymentId || data.paymentId,
-          paymentMethod: 'Тинькофф'
-        };
-        
-        console.log('Отправка билета после успешной оплаты Тинькофф...');
-        sendTicketEmailWeb3Forms(ticketData);
-        
-        // Отправляем данные администратору в Telegram
-        console.log('Отправка данных администратору в Telegram...');
-        sendToTelegram(ticketData).then(result => {
-          console.log('Результат отправки в Telegram:', result);
-        }).catch(error => {
-          console.error('Ошибка отправки в Telegram:', error);
-        });
-        
-        // Очищаем после использования
-        localStorage.removeItem('pendingTicketData');
-      } else {
-        console.log('❌ Нет данных в localStorage!');
-      }
+      // Отправляем билет на email через Web3Forms
+      const ticketData = {
+        ...data,
+        paymentId: PaymentId || data.paymentId,
+        paymentMethod: 'Тинькофф'
+      };
+      
+      console.log('Отправка билета...');
+      sendTicketEmailWeb3Forms(ticketData);
+      
+      // Отправляем данные администратору в Telegram
+      console.log('Отправка данных администратору в Telegram...');
+      sendToTelegram(ticketData).then(result => {
+        console.log('Результат отправки в Telegram:', result);
+      }).catch(error => {
+        console.error('Ошибка отправки в Telegram:', error);
+      });
+      
+      // Очищаем после использования
+      localStorage.removeItem('pendingTicketData');
+    } else if (success === 'true' || Status === 'CONFIRMED' || Status === 'AUTHORIZED' || PaymentId) {
+      console.log('Обнаружена успешная оплата, но нет данных в localStorage');
     } else {
-      console.log('❌ Не обнаружено успешной оплаты');
+      console.log('❌ Нет данных для генерации билета');
     }
   }, [location.search]);
 
