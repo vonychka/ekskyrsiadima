@@ -669,6 +669,187 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+/* ================= SERVER-SIDE RENDERING ROUTES ================= */
+// Serve main page with server-side content
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Туристическое агентство ДИМА</title>
+      <meta name="description" content="Экскурсии в Нижнем Новгороде">
+      <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .tours { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .tour { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        .tour h3 { color: #2563eb; margin-bottom: 10px; }
+        .tour p { color: #666; line-height: 1.5; }
+        .btn { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #1d4ed8; }
+        .loading { text-align: center; color: #666; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>📍 Туристическое агентство ДИМА</h1>
+          <p>Лучшие экскурсии в Нижнем Новгороде</p>
+          <p><strong>📞 +7 (999) 140-80-94</strong></p>
+        </div>
+        
+        <div class="tours">
+          <div class="tour">
+            <h3>Прогулка с Дедом Морозом</h3>
+            <p>Увлекательная экскурсия по зимнему Нижнему Новгороду с встречей с Дедом Морозом</p>
+            <p><strong>Длительность:</strong> 2 часа</p>
+            <p><strong>Цена:</strong> от 1500₽</p>
+            <button class="btn" onclick="window.location.href='/tour/1757526403608'">Подробнее</button>
+          </div>
+          
+          <div class="tour">
+            <h3>Скоро появится</h3>
+            <p>Новая интересная экскурсия уже в разработке</p>
+            <p><strong>Скоро!</strong></p>
+            <button class="btn" disabled>Скоро</button>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; color: #666;">
+          <p>Для полного функционала включите JavaScript</p>
+          <p><a href="/admin">Административная панель</a></p>
+        </div>
+      </div>
+      
+      <script>
+        // Проверяем доступность JavaScript и перенаправляем на React app если доступно
+        setTimeout(function() {
+          if (typeof window !== 'undefined') {
+            console.log('JavaScript доступен, перенаправляем на React приложение...');
+            // Можно добавить перенаправление на React app если нужно
+          }
+        }, 1000);
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+// Tour details page
+app.get('/tour/:tourId', (req, res) => {
+  const tourId = req.params.tourId;
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Экскурсия - Туристическое агентство ДИМА</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .back { margin-bottom: 20px; }
+        .btn { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
+        .btn:hover { background: #1d4ed8; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="back">
+          <a href="/" class="btn">← Назад к списку экскурсий</a>
+        </div>
+        
+        <h1>📍 Экскурсия</h1>
+        <p>Информация об экскурсии ID: ${tourId}</p>
+        
+        <div style="margin-top: 30px;">
+          <h3>Для бронирования и полной информации:</h3>
+          <p>📞 Позвоните: +7 (999) 140-80-94</p>
+          <p>📧 Напишите: rmok0082@gmail.com</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; color: #666;">
+          <p>Для полного функционала включите JavaScript</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+// Admin page
+app.get('/admin', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Админ панель - Туристическое агентство ДИМА</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .btn { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
+        .btn:hover { background: #1d4ed8; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>🔐 Административная панель</h1>
+        <p>Для доступа к административной панели требуется JavaScript.</p>
+        
+        <div style="margin-top: 30px;">
+          <a href="/" class="btn">← На главную</a>
+        </div>
+        
+        <div style="margin-top: 20px; color: #666;">
+          <p>Убедитесь что JavaScript включен в браузере для доступа к админ панеле.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+// Ticket page
+app.get('/ticket', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Билет - Туристическое агентство ДИМА</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .ticket { border: 2px dashed #2563eb; padding: 20px; margin: 20px 0; text-align: center; }
+        .btn { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
+        .btn:hover { background: #1d4ed8; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>🎫 Ваш билет</h1>
+        
+        <div class="ticket">
+          <h2>Билет на экскурсию</h2>
+          <p>Спасибо за заказ!</p>
+          <p>Для получения полного билета включите JavaScript</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="/" class="btn">← На главную</a>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
 /* ================= START SERVER ================= */
 const PORT = process.env.PORT || 3000;
 
@@ -676,6 +857,7 @@ app.listen(PORT, () => {
   console.log(`✅ Server started on port ${PORT}`);
   console.log(`📡 Webhook endpoint: https://nextjs-boilerplateuexkyesua.onrender.com/api/tinkoff-webhook`);
   console.log(`📨 Client data endpoint: https://nextjs-boilerplateuexkyesua.onrender.com/api/send-client-data`);
+  console.log(`🌐 Server-side rendering enabled for better mobile compatibility`);
 });
 
 export default app;
