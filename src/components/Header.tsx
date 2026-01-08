@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail } from 'lucide-react';
+import { MapPin, Phone, Mail, MessageCircle } from 'lucide-react';
 
 const Header: React.FC = () => {
   return (
@@ -26,6 +26,15 @@ const Header: React.FC = () => {
               <Mail className="w-4 h-4" />
               <span className="text-sm">rmok0082@gmail.com</span>
             </div>
+            <a
+              href="https://t.me/Dinisfrench"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-sm font-medium">Задать вопрос</span>
+            </a>
             <Link 
               to="/admin"
               className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
