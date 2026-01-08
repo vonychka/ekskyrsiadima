@@ -26,34 +26,12 @@ const Header: React.FC = () => {
               <Mail className="w-4 h-4" />
               <span className="text-sm">rmok0082@gmail.com</span>
             </div>
-            <a
-              href="https://t.me/Dinisfrench"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-sm font-medium">Задать вопрос</span>
-            </a>
             <Link 
               to="/admin"
               className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
             >
               Админ
             </Link>
-          </div>
-
-          {/* Mobile version - only show button and phone */}
-          <div className="md:hidden flex items-center space-x-3">
-            <a
-              href="https://t.me/Dinisfrench"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg transition-colors"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-xs font-medium">Вопрос</span>
-            </a>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import StaticReviewsSection from '../components/StaticReviewsSection';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { getNearestTourSpots } from '../data/tours';
 import { Tour } from '../types';
+import { MessageCircle } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const { tours, schedules, loading } = useOptimizedTours();
@@ -343,6 +344,20 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Floating Telegram Button */}
+      <a
+        href="https://t.me/Dinisfrench"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-50 flex items-center justify-center group"
+        title="Задать вопрос в Telegram"
+      >
+        <MessageCircle className="w-6 h-6" />
+        <span className="absolute right-full mr-3 bg-gray-800 text-white px-3 py-1 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          Задать вопрос
+        </span>
+      </a>
 
       
       </div>
