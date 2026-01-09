@@ -680,7 +680,7 @@ const TourDetails: React.FC = () => {
                       </span>
                     </div>
                     
-                    {appliedPromoCode && (
+                    {bookingType !== 'custom' && appliedPromoCode && (
                       <div className="flex justify-between items-center text-green-600">
                         <span>Скидка {discountAmount * 100}%:</span>
                         <span className="font-medium">
@@ -694,14 +694,17 @@ const TourDetails: React.FC = () => {
                         <span>Итого к оплате:</span>
                         <div className="text-right">
                           <div className="text-blue-600">
-                            {formatPrice(
-                              Math.round(
-                                (getPriceForTariff(selectedTariff) * numberOfPeople * 
-                                (1 - (discountedPrice ? discountAmount : 0))) * 100
-                              ) / 100
-                            )} ₽
+                            {bookingType === 'custom' 
+                              ? '300 ₽'
+                              : `${formatPrice(
+                                  Math.round(
+                                    (getPriceForTariff(selectedTariff) * numberOfPeople * 
+                                    (1 - (discountedPrice ? discountAmount : 0))) * 100
+                                  ) / 100
+                                )} ₽`
+                            }
                           </div>
-                          {appliedPromoCode && (
+                          {bookingType !== 'custom' && appliedPromoCode && (
                             <div className="text-xs text-gray-500 mt-1">
                               Промокод: {appliedPromoCode}
                             </div>
