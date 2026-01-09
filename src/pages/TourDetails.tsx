@@ -739,12 +739,13 @@ const TourDetails: React.FC = () => {
                       ? 'Нет доступных мест' 
                       : !selectedScheduleId 
                       ? 'Выберите время экскурсии' 
-                      : 'Забронировать за ' + formatPrice(
+                      : `Забронировать за ${formatPrice(
                           Math.round(
                             (getPriceForTariff(selectedTariff) * numberOfPeople * 
                             (1 - (discountedPrice ? discountAmount : 0))) * 100
                           ) / 100
-                        )} ₽
+                        )} ₽`)
+                  }
                 </button>
               </div>
             </div>
