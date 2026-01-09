@@ -1,38 +1,24 @@
 import React, { useState, useEffect } from 'react';
 // import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-// Используем динамический импорт для Firebase
-let database: any = null;
+// Используем такой же подход как в storageService.ts
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getDatabase, ref, onValue, set } from 'firebase/database';
 
-const initializeFirebase = async () => {
-  try {
-    // Динамически импортируем Firebase
-    const firebaseModule = await import('firebase/app');
-    const databaseModule = await import('firebase/database');
-    
-    const firebase = firebaseModule.default;
-    
-    const firebaseConfig = {
-      apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
-      authDomain: "ekskyrsiadima.firebaseapp.com",
-      databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
-      projectId: "ekskyrsiadima",
-      storageBucket: "ekskyrsiadima.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdef123456789012345"
-    };
-    
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    database = firebase.database();
-    console.log('Firebase успешно инициализирован для аналитики');
-    return true;
-  } catch (error) {
-    console.error('Ошибка инициализации Firebase:', error);
-    return false;
-  }
+// Firebase конфигурация (используем ту же что и в storageService.ts)
+const firebaseConfig = {
+  apiKey: "AIzaSyBE-bcqM7DM_zV8xivFKKbrSAHifIWYgps",
+  authDomain: "exursional.firebaseapp.com",
+  databaseURL: "https://exursional-default-rtdb.firebaseio.com",
+  projectId: "exursional",
+  storageBucket: "exursional.firebasestorage.app",
+  messagingSenderId: "770008017138",
+  appId: "1:770008017138:web:23909355289d478208c86b"
 };
+
+// Инициализируем Firebase
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const database = getDatabase(app);
 
 interface ClickData {
   buttonId: string;
@@ -58,52 +44,40 @@ const AnalyticsPage: React.FC = () => {
   const [firebaseError, setFirebaseError] = useState(false);
 
   useEffect(() => {
-    const setupAnalytics = async () => {
-      const firebaseInitialized = await initializeFirebase();
-      
-      if (!firebaseInitialized || !database) {
-        setFirebaseError(true);
-        setLoading(false);
-        return;
+    // Используем реальный Firebase
+    const analyticsRef = ref(database, 'analytics');
+    
+    const unsubscribe = onValue(analyticsRef, (snapshot: any) => {
+      const data = snapshot.val();
+      if (data) {
+        const processedData: AnalyticsData = {};
+        let total = 0;
+        
+        Object.keys(data).forEach(buttonId => {
+          const buttonData = data[buttonId];
+          processedData[buttonId] = {
+            buttonText: buttonData.buttonText || buttonId,
+            page: buttonData.page || 'Unknown',
+            clicks: buttonData.clicks || 0,
+            lastClick: buttonData.lastClick || 0
+          };
+          total += buttonData.clicks || 0;
+        });
+        
+        setAnalyticsData(processedData);
+        setTotalClicks(total);
+      } else {
+        setAnalyticsData({});
+        setTotalClicks(0);
       }
+      setLoading(false);
+    }, (error: any) => {
+      console.error('Ошибка Firebase:', error);
+      setFirebaseError(true);
+      setLoading(false);
+    });
 
-      // Используем реальный Firebase
-      const analyticsRef = database.ref('analytics');
-      
-      const unsubscribe = analyticsRef.on('value', (snapshot: any) => {
-        const data = snapshot.val();
-        if (data) {
-          const processedData: AnalyticsData = {};
-          let total = 0;
-          
-          Object.keys(data).forEach(buttonId => {
-            const buttonData = data[buttonId];
-            processedData[buttonId] = {
-              buttonText: buttonData.buttonText || buttonId,
-              page: buttonData.page || 'Unknown',
-              clicks: buttonData.clicks || 0,
-              lastClick: buttonData.lastClick || 0
-            };
-            total += buttonData.clicks || 0;
-          });
-          
-          setAnalyticsData(processedData);
-          setTotalClicks(total);
-        } else {
-          setAnalyticsData({});
-          setTotalClicks(0);
-        }
-        setLoading(false);
-      }, (error: any) => {
-        console.error('Ошибка Firebase:', error);
-        setFirebaseError(true);
-        setLoading(false);
-      });
-
-      return () => unsubscribe();
-    };
-
-    setupAnalytics();
+    return () => unsubscribe();
   }, []);
 
   const formatDate = (timestamp: number) => {
@@ -113,14 +87,10 @@ const AnalyticsPage: React.FC = () => {
   const resetAnalytics = async () => {
     if (window.confirm('Вы уверены, что хотите сбросить всю аналитику? Это действие нельзя отменить.')) {
       try {
-        if (database) {
-          await database.ref('analytics').set({});
-          setAnalyticsData({});
-          setTotalClicks(0);
-          alert('Аналитика успешно сброшена!');
-        } else {
-          alert('Ошибка: Firebase недоступен');
-        }
+        await set(ref(database, 'analytics'), {});
+        setAnalyticsData({});
+        setTotalClicks(0);
+        alert('Аналитика успешно сброшена!');
       } catch (error) {
         console.error('Ошибка при сбросе аналитики:', error);
         alert('Ошибка при сбросе аналитики');
@@ -176,6 +146,31 @@ const AnalyticsPage: React.FC = () => {
               </div>
               <div className="text-sm text-purple-600 mt-1">Среднее кликов на кнопку</div>
             </div>
+          </div>
+        </div>
+
+        {/* Список кнопок с количеством кликов */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">🔘 Кнопки и количество кликов</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(analyticsData).map(([buttonId, data]) => (
+              <div key={buttonId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">{data.buttonText}</div>
+                  <div className="text-sm text-gray-500">{data.page}</div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                    {data.clicks} кликов
+                  </span>
+                  {data.lastClick > 0 && (
+                    <span className="text-xs text-gray-400">
+                      {formatDate(data.lastClick).split(',')[1]}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

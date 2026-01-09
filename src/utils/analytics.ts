@@ -1,39 +1,21 @@
-// Используем динамический импорт для Firebase
-let database: any = null;
-let firebaseInitialized = false;
+// Используем такой же подход как в storageService.ts
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getDatabase, ref, set, get } from 'firebase/database';
 
-const initializeFirebaseAnalytics = async () => {
-  if (firebaseInitialized) return database;
-  
-  try {
-    // Динамически импортируем Firebase
-    const firebaseModule = await import('firebase/app');
-    const databaseModule = await import('firebase/database');
-    
-    const firebase = firebaseModule.default;
-    
-    const firebaseConfig = {
-      apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
-      authDomain: "ekskyrsiadima.firebaseapp.com",
-      databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
-      projectId: "ekskyrsiadima",
-      storageBucket: "ekskyrsiadima.appspot.com",
-      messagingSenderId: "123456789012",
-      appId: "1:123456789012:web:abcdef123456789012345"
-    };
-    
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    database = firebase.database();
-    firebaseInitialized = true;
-    console.log('Firebase успешно инициализирован для аналитики');
-    return database;
-  } catch (error) {
-    console.error('Ошибка инициализации Firebase в analytics:', error);
-    return null;
-  }
+// Firebase конфигурация (используем ту же что и в storageService.ts)
+const firebaseConfig = {
+  apiKey: "AIzaSyBE-bcqM7DM_zV8xivFKKbrSAHifIWYgps",
+  authDomain: "exursional.firebaseapp.com",
+  databaseURL: "https://exursional-default-rtdb.firebaseio.com",
+  projectId: "exursional",
+  storageBucket: "exursional.firebasestorage.app",
+  messagingSenderId: "770008017138",
+  appId: "1:770008017138:web:23909355289d478208c86b"
 };
+
+// Инициализируем Firebase
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const database = getDatabase(app);
 
 interface ClickData {
   buttonId: string;
@@ -114,17 +96,9 @@ export class Analytics {
       const timestamp = Date.now();
       const date = new Date().toISOString().split('T')[0];
 
-      // Инициализируем Firebase если нужно
-      const db = await initializeFirebaseAnalytics();
-      
-      if (!db) {
-        console.log(`Analytics: Клик отслежен - ${buttonText} (${buttonId}) на странице ${page} (Firebase недоступен)`);
-        return;
-      }
-
       // Получаем текущие данные для этой кнопки
-      const buttonRef = db.ref(`analytics/${buttonId}`);
-      const snapshot = await buttonRef.once('value');
+      const buttonRef = ref(database, `analytics/${buttonId}`);
+      const snapshot = await get(buttonRef);
       const currentData = snapshot.val() || {
         buttonText,
         page,
@@ -140,11 +114,11 @@ export class Analytics {
         lastClick: timestamp
       };
 
-      await buttonRef.set(updatedData);
+      await set(buttonRef, updatedData);
 
       // Добавляем запись в историю
-      const historyRef = db.ref(`analytics_history/${buttonId}/${timestamp}`);
-      await historyRef.set({
+      const historyRef = ref(database, `analytics_history/${buttonId}/${timestamp}`);
+      await set(historyRef, {
         buttonText,
         page,
         timestamp,
@@ -265,15 +239,7 @@ export class Analytics {
     const date = new Date().toISOString().split('T')[0];
     const currentPage = page || this.getCurrentPage();
 
-    // Инициализируем Firebase если нужно
-    const db = await initializeFirebaseAnalytics();
-    
-    if (!db) {
-      console.log(`Analytics: Ручной клик отслежен - ${buttonText} (${buttonId}) на странице ${currentPage} (Firebase недоступен)`);
-      return;
-    }
-
-    const buttonRef = db.ref(`analytics/${buttonId}`);
+    const buttonRef = ref(database, `analytics/${buttonId}`);
     const updatedData = {
       buttonText,
       page: currentPage,
@@ -281,7 +247,7 @@ export class Analytics {
       lastClick: timestamp
     };
 
-    buttonRef.set(updatedData);
+    await set(buttonRef, updatedData);
     console.log(`Analytics: Ручной клик отслежен и сохранен - ${buttonText} (${buttonId})`);
   }
 }

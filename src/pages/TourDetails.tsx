@@ -157,6 +157,8 @@ const TourDetails: React.FC = () => {
           </p>
           <button
             onClick={() => navigate('/')}
+            data-analytics="tour-details-back"
+            data-button-text="Вернуться к списку экскурсий"
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
           >
             Вернуться к списку экскурсий
@@ -312,6 +314,8 @@ const TourDetails: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <button 
           onClick={() => navigate('/')}
+          data-analytics="tour-details-nav-back"
+          data-button-text="Назад к экскурсиям"
           className="mb-6 flex items-center text-blue-600 hover:text-blue-800"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -513,6 +517,8 @@ const TourDetails: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setBookingType('scheduled')}
+                      data-analytics="tour-booking-scheduled"
+                      data-button-text="Выберите дату и время"
                       className={`p-4 rounded-xl border-2 transition-all ${
                         bookingType === 'scheduled'
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -527,6 +533,8 @@ const TourDetails: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setBookingType('custom')}
+                      data-analytics="tour-booking-custom"
+                      data-button-text="Любая удобная дата"
                       className={`p-4 rounded-xl border-2 transition-all ${
                         bookingType === 'custom'
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -534,7 +542,7 @@ const TourDetails: React.FC = () => {
                       }`}
                     >
                       <div className="text-left">
-                        <div className="font-medium mb-1">Выбрать свою дату</div>
+                        <div className="font-medium mb-1">Любая удобная дата</div>
                         <div className="text-sm opacity-75">Любая удобная дата (300₽)</div>
                       </div>
                     </button>
@@ -750,6 +758,8 @@ const TourDetails: React.FC = () => {
 
                 <button
                   onClick={handleBooking}
+                  data-analytics="tour-booking-submit"
+                  data-button-text="Забронировать"
                   disabled={
                     (bookingType === 'scheduled' && (!selectedScheduleId || availableSchedules.length === 0)) ||
                     (bookingType === 'custom' && (!customDate || !customTime))

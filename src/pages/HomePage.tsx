@@ -206,6 +206,8 @@ const HomePage: React.FC = () => {
   {/* Primary CTA */}
   <button
   onClick={scrollToTours}
+  data-analytics="home-primary-cta"
+  data-button-text="Забронировать экскурсию"
   className="
     group relative
     w-full max-w-sm
@@ -236,6 +238,8 @@ const HomePage: React.FC = () => {
         .getElementById('reviews-section')
         ?.scrollIntoView({ behavior: 'smooth' })
     }
+    data-analytics="home-reviews-btn"
+    data-button-text="Отзывы"
     className="
       group relative
       w-full
@@ -260,6 +264,8 @@ const HomePage: React.FC = () => {
   </button>
   <button
     onClick={scrollToContacts}
+    data-analytics="home-contacts-btn"
+    data-button-text="Контакты"
     className="
       group relative
       w-full
@@ -331,7 +337,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {contactInfo.map((stat, index) => (
-              <a key={index} href={stat.href} target={stat.href.startsWith('tel:') || stat.href.startsWith('mailto:') ? '_self' : '_blank'} rel="noopener noreferrer" className="group">
+              <a key={index} href={stat.href} target={stat.href.startsWith('tel:') || stat.href.startsWith('mailto:') ? '_self' : '_blank'} rel="noopener noreferrer" className="group" data-analytics={`home-contact-${stat.label.toLowerCase()}`} data-button-text={stat.label}>
                 <div className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-all duration-200 hover:scale-105">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors duration-200">
                     {stat.icon}
@@ -350,6 +356,8 @@ const HomePage: React.FC = () => {
         href="https://t.me/Dinisfrench"
         target="_blank"
         rel="noopener noreferrer"
+        data-analytics="home-floating-telegram"
+        data-button-text="Telegram"
         className="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-50 flex items-center justify-center gap-2 group"
         title="Задать вопрос в Telegram"
       >
