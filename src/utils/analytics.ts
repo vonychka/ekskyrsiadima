@@ -1,20 +1,29 @@
-import firebase from 'firebase/app';
-import 'firebase/database';
+// Пробуем альтернативный подход с Firebase
+let database: any = null;
 
-// Firebase конфигурация
-const firebaseConfig = {
-  apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
-  authDomain: "ekskyrsiadima.firebaseapp.com",
-  databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
-  projectId: "ekskyrsiadima",
-  storageBucket: "ekskyrsiadima.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789012345"
-};
-
-// Инициализируем Firebase
-const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
-const database = firebase.database();
+try {
+  // Импортируем Firebase с try-catch
+  const firebase = require('firebase/app');
+  require('firebase/database');
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
+    authDomain: "ekskyrsiadima.firebaseapp.com",
+    databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
+    projectId: "ekskyrsiadima",
+    storageBucket: "ekskyrsiadima.appspot.com",
+    messagingSenderId: "123456789012",
+    appId: "1:123456789012:web:abcdef123456789012345"
+  };
+  
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  database = firebase.database();
+  console.log('Firebase успешно инициализирован для аналитики');
+} catch (error) {
+  console.error('Ошибка инициализации Firebase в analytics:', error);
+}
 
 interface ClickData {
   buttonId: string;
@@ -95,6 +104,11 @@ export class Analytics {
       const timestamp = Date.now();
       const date = new Date().toISOString().split('T')[0];
 
+      if (!database) {
+        console.log(`Analytics: Клик отслежен - ${buttonText} (${buttonId}) на странице ${page} (Firebase недоступен)`);
+        return;
+      }
+
       // Получаем текущие данные для этой кнопки
       const buttonRef = database.ref(`analytics/${buttonId}`);
       const snapshot = await buttonRef.once('value');
@@ -124,7 +138,7 @@ export class Analytics {
         date
       });
 
-      console.log(`Analytics: Клик отслежен - ${buttonText} (${buttonId})`);
+      console.log(`Analytics: Клик отслежен и сохранен - ${buttonText} (${buttonId})`);
     } catch (error) {
       console.error('Analytics: Ошибка при отслеживании клика:', error);
     }
@@ -238,6 +252,11 @@ export class Analytics {
     const date = new Date().toISOString().split('T')[0];
     const currentPage = page || this.getCurrentPage();
 
+    if (!database) {
+      console.log(`Analytics: Ручной клик отслежен - ${buttonText} (${buttonId}) на странице ${currentPage} (Firebase недоступен)`);
+      return;
+    }
+
     const buttonRef = database.ref(`analytics/${buttonId}`);
     const updatedData = {
       buttonText,
@@ -247,6 +266,7 @@ export class Analytics {
     };
 
     buttonRef.set(updatedData);
+    console.log(`Analytics: Ручной клик отслежен и сохранен - ${buttonText} (${buttonId})`);
   }
 }
 

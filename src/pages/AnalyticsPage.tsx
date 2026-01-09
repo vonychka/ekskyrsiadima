@@ -1,22 +1,32 @@
 import React, { useState, useEffect } from 'react';
 // import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import firebase from 'firebase/app';
-import 'firebase/database';
 
-// Firebase конфигурация
-const firebaseConfig = {
-  apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
-  authDomain: "ekskyrsiadima.firebaseapp.com",
-  databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
-  projectId: "ekskyrsiadima",
-  storageBucket: "ekskyrsiadima.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789012345"
-};
+// Пробуем альтернативный подход с Firebase
+let database: any = null;
 
-// Инициализируем Firebase
-const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
-const database = firebase.database();
+try {
+  // Импортируем Firebase с try-catch
+  const firebase = require('firebase/app');
+  require('firebase/database');
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
+    authDomain: "ekskyrsiadima.firebaseapp.com",
+    databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
+    projectId: "ekskyrsiadima",
+    storageBucket: "ekskyrsiadima.appspot.com",
+    messagingSenderId: "123456789012",
+    appId: "1:123456789012:web:abcdef123456789012345"
+  };
+  
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  database = firebase.database();
+  console.log('Firebase успешно инициализирован для аналитики');
+} catch (error) {
+  console.error('Ошибка инициализации Firebase:', error);
+}
 
 interface ClickData {
   buttonId: string;
@@ -39,11 +49,19 @@ const AnalyticsPage: React.FC = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({});
   const [loading, setLoading] = useState(true);
   const [totalClicks, setTotalClicks] = useState(0);
+  const [firebaseError, setFirebaseError] = useState(false);
 
   useEffect(() => {
+    if (!database) {
+      setFirebaseError(true);
+      setLoading(false);
+      return;
+    }
+
+    // Используем реальный Firebase
     const analyticsRef = database.ref('analytics');
     
-    const unsubscribe = analyticsRef.on('value', (snapshot) => {
+    const unsubscribe = analyticsRef.on('value', (snapshot: any) => {
       const data = snapshot.val();
       if (data) {
         const processedData: AnalyticsData = {};
@@ -62,7 +80,14 @@ const AnalyticsPage: React.FC = () => {
         
         setAnalyticsData(processedData);
         setTotalClicks(total);
+      } else {
+        setAnalyticsData({});
+        setTotalClicks(0);
       }
+      setLoading(false);
+    }, (error: any) => {
+      console.error('Ошибка Firebase:', error);
+      setFirebaseError(true);
       setLoading(false);
     });
 
@@ -76,11 +101,17 @@ const AnalyticsPage: React.FC = () => {
   const resetAnalytics = async () => {
     if (window.confirm('Вы уверены, что хотите сбросить всю аналитику? Это действие нельзя отменить.')) {
       try {
-        await database.ref('analytics').set({});
-        setAnalyticsData({});
-        setTotalClicks(0);
+        if (database) {
+          await database.ref('analytics').set({});
+          setAnalyticsData({});
+          setTotalClicks(0);
+          alert('Аналитика успешно сброшена!');
+        } else {
+          alert('Ошибка: Firebase недоступен');
+        }
       } catch (error) {
         console.error('Ошибка при сбросе аналитики:', error);
+        alert('Ошибка при сбросе аналитики');
       }
     }
   };
@@ -89,6 +120,17 @@ const AnalyticsPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-xl text-gray-600">Загрузка аналитики...</div>
+      </div>
+    );
+  }
+
+  if (firebaseError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl text-red-600 mb-4">Ошибка подключения к Firebase</div>
+          <div className="text-gray-600">Аналитика временно недоступна. Пожалуйста, проверьте консоль для деталей.</div>
+        </div>
       </div>
     );
   }
