@@ -403,7 +403,7 @@ ID платежа: ${paymentId}
       try {
         console.log(`Отправка сообщения пользователю ${chatId}...`);
         
-        const telegramResponse = await fetch('https://api.telegram.org/bot7994136906:AAH2K4U8WqZ8YH9gKf8xLq3vS7rT2mK4Y/sendMessage', {
+        const telegramResponse = await fetch('https://api.telegram.org/bot8209677930:AAFYQhWh_a4NvzRgnBjeJTO_Af5JkxWeauE/sendMessage', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
