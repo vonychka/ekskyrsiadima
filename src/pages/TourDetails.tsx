@@ -534,99 +534,91 @@ const TourDetails: React.FC = () => {
                 </div>
 
                 {/* Schedule Selection - only show for scheduled booking */}
-                {bookingType === 'scheduled' && (
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Выберите дату и время
-                      </label>
-                      {availableSchedules.length === 0 && !isLoading && (
-                        <span className="text-sm text-yellow-600 flex items-center">
-                          <AlertCircle className="w-4 h-4 mr-1" />
-                          Нет доступных дат
-                        </span>
-                      )}
-                    </div>
+{bookingType === 'scheduled' && (
+  <div className="mb-6">
+    <div className="flex items-center justify-between mb-4">
+      <label className="block text-sm font-medium text-gray-700">
+        Выберите дату и время
+      </label>
+      {availableSchedules.length === 0 && !isLoading && (
+        <span className="text-sm text-yellow-600 flex items-center">
+          <AlertCircle className="w-4 h-4 mr-1" />
+          Нет доступных дат
+        </span>
+      )}
+    </div>
                   
                   {availableSchedules.length > 0 ? (
-                    <div className="space-y-4">
-                      {Object.entries(groupedSchedules).map(([date, daySchedules]) => {
-                        const displayDate = format(parseISO(date), 'd MMMM, EEEE', { locale: ru });
-                        return (
-                          <div key={date} className="border-2 border-gray-200 rounded-xl p-4">
-                            <div className="flex items-center space-x-2 mb-3">
-                              <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                              <h4 className="font-medium text-gray-900">
-                                {displayDate.charAt(0).toUpperCase() + displayDate.slice(1)}
-                              </h4>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-3">
-                              {daySchedules.map((schedule) => {
-                                const isLowAvailability = schedule.availableSpots <= 3;
-                                const isFull = schedule.availableSpots <= 0;
-                                
-                                return (
-                                  <label 
-                                    key={schedule.id} 
-                                    className={`cursor-pointer ${isFull ? 'opacity-60' : ''}`}
-                                    title={isFull ? 'Нет свободных мест' : ''}
-                                  >
-                                    <input
-                                      type="radio"
-                                      name="schedule"
-                                      value={schedule.id}
-                                      checked={selectedScheduleId === schedule.id}
-                                      onChange={(e) => setSelectedScheduleId(e.target.value)}
-                                      disabled={isFull}
-                                      className="sr-only"
-                                    />
-                                    <div 
-                                      className={`border-2 rounded-xl p-3 transition-all duration-200 text-center ${
-                                        selectedScheduleId === schedule.id
-                                          ? 'border-blue-500 bg-blue-50'
-                                          : 'border-gray-200 hover:border-gray-300'
-                                      } ${isFull ? 'bg-gray-100' : ''}`}
-                                    >
-                                      <div className="space-y-1">
-                                        <div className="flex items-center justify-center space-x-2">
-                                          <Clock className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                          <span className="font-medium">
-                                            {schedule.time}
-                                          </span>
-                                        </div>
-                                        <div className={`text-xs ${
-                                          isLowAvailability && !isFull 
-                                            ? 'text-red-600 font-medium' 
-                                            : 'text-gray-600'
-                                        }`}>
-                                          {isFull 
-                                            ? 'Нет мест' 
-                                            : `${schedule.availableSpots} ${getPluralForm(schedule.availableSpots, ['место', 'места', 'мест'])}`
-                                          }
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </label>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 bg-gray-50 rounded-lg">
-                      <p className="text-gray-500">Нет доступных дат для бронирования</p>
-                      <button 
-                        onClick={loadTourData}
-                        className="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
+      <div className="space-y-4">
+        {Object.entries(groupedSchedules).map(([date, daySchedules]) => {
+          const displayDate = format(parseISO(date), 'd MMMM, EEEE', { locale: ru });
+
+          return (
+            <div key={date} className="border-2 border-gray-200 rounded-xl p-4">
+              <div className="flex items-center space-x-2 mb-3">
+                <Calendar className="w-4 h-4 text-blue-600" />
+                <h4 className="font-medium text-gray-900">
+                  {displayDate.charAt(0).toUpperCase() + displayDate.slice(1)}
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {daySchedules.map(schedule => {
+                  const isLow = schedule.availableSpots <= 3;
+                  const isFull = schedule.availableSpots <= 0;
+
+                  return (
+                    <label key={schedule.id} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="schedule"
+                        value={schedule.id}
+                        checked={selectedScheduleId === schedule.id}
+                        onChange={e => setSelectedScheduleId(e.target.value)}
+                        disabled={isFull}
+                        className="sr-only"
+                      />
+
+                      <div
+                        className={`border-2 rounded-xl p-3 text-center transition ${
+                          selectedScheduleId === schedule.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        } ${isFull ? 'opacity-50 bg-gray-100' : ''}`}
                       >
-                        Обновить расписание
-                      </button>
-                    </div>
-                  )}
-                </div>
+                        <div className="flex justify-center items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {schedule.time}
+                        </div>
+
+                        <div className={`text-xs mt-1 ${isLow ? 'text-red-600' : 'text-gray-600'}`}>
+                          {isFull
+                            ? 'Нет мест'
+                            : `${schedule.availableSpots} ${getPluralForm(schedule.availableSpots, ['место','места','мест'])}`}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <div className="text-center py-6 bg-gray-50 rounded-lg">
+        <p className="text-gray-500">Нет доступных дат</p>
+        <button
+          onClick={loadTourData}
+          className="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium"
+        >
+          Обновить
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
 
                 {/* Custom Date Selection - only show for custom booking */}
                 {bookingType === 'custom' && (
