@@ -48,6 +48,8 @@ const TourDetails: React.FC = () => {
   const [availableSchedules, setAvailableSchedules] = useState<Schedule[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [bookingType, setBookingType] = useState<'scheduled' | 'custom'>('scheduled');
+  const [customDate, setCustomDate] = useState<string>('');
   
   // Get data from context
   const { tours, schedules, loading } = useToursContext();
@@ -164,6 +166,41 @@ const TourDetails: React.FC = () => {
   }
 
   const handleBooking = () => {
+    // Validation for custom booking
+    if (bookingType === 'custom') {
+      if (!customDate) {
+        alert('Пожалуйста, выберите желаемую дату');
+        return;
+      }
+      
+      // For custom booking, price is always 300₽
+      const finalPrice = 300;
+      
+      console.log('Custom booking debug:', {
+        customDate,
+        numberOfPeople,
+        finalPrice,
+        bookingType
+      });
+      
+      // Navigate to booking with custom data
+      navigate('/booking', {
+        state: {
+          tourId: tour.id,
+          tour: tour,
+          numberOfPeople: numberOfPeople,
+          selectedTariff: selectedTariff,
+          customDate: customDate,
+          bookingType: 'custom',
+          finalPrice: finalPrice,
+          appliedPromoCode: appliedPromoCode
+        }
+      });
+      
+      return;
+    }
+
+    // Validation for scheduled booking
     if (!selectedScheduleId) {
       alert('Пожалуйста, выберите дату и время');
       return;
@@ -174,8 +211,7 @@ const TourDetails: React.FC = () => {
       alert('Выбранное расписание больше не доступно. Пожалуйста, обновите страницу.');
       return;
     }
-
-    // Check available spots
+    
     if (selectedSchedule.availableSpots < numberOfPeople) {
       alert(`Извините, осталось только ${selectedSchedule.availableSpots} мест`);
       return;
@@ -460,19 +496,57 @@ const TourDetails: React.FC = () => {
                   )}
                 </div>
 
-                {/* Schedule Selection */}
+                {/* Booking Type Selection */}
                 <div className="mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Выберите дату и время
-                    </label>
-                    {availableSchedules.length === 0 && !isLoading && (
-                      <span className="text-sm text-yellow-600 flex items-center">
-                        <AlertCircle className="w-4 h-4 mr-1" />
-                        Нет доступных дат
-                      </span>
-                    )}
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Тип бронирования
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setBookingType('scheduled')}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        bookingType === 'scheduled'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-medium mb-1">Выберите дату и время</div>
+                        <div className="text-sm opacity-75">Готовые даты и время</div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookingType('custom')}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        bookingType === 'custom'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-medium mb-1">Выбрать свою дату</div>
+                        <div className="text-sm opacity-75">Любая удобная дата (300₽)</div>
+                      </div>
+                    </button>
                   </div>
+                </div>
+
+                {/* Schedule Selection - only show for scheduled booking */}
+                {bookingType === 'scheduled' && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Выберите дату и время
+                      </label>
+                      {availableSchedules.length === 0 && !isLoading && (
+                        <span className="text-sm text-yellow-600 flex items-center">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          Нет доступных дат
+                        </span>
+                      )}
+                    </div>
                   
                   {availableSchedules.length > 0 ? (
                     <div className="space-y-4">
@@ -553,6 +627,38 @@ const TourDetails: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Custom Date Selection - only show for custom booking */}
+                {bookingType === 'custom' && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Выберите желаемую дату
+                    </label>
+                    <input
+                      type="date"
+                      value={customDate}
+                      onChange={(e) => setCustomDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                    <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                      <div className="flex items-start space-x-2">
+                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <div className="font-medium mb-1">Как это работает:</div>
+                          <ul className="space-y-1 text-blue-700">
+                            <li>• Выбираете любую удобную дату</li>
+                            <li>• Оплачиваете бронирование 300₽</li>
+                            <li>• Мы связываемся с вами для подтверждения</li>
+                            <li>• При подтверждении - полная стоимость экскурсии</li>
+                            <li>• Если невозможно - возврат 300₽</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Promo Code */}
                 <div className="mb-6">
@@ -571,9 +677,14 @@ const TourDetails: React.FC = () => {
                 <div className="border-t border-gray-200 pt-4 mb-6">
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Стоимость:</span>
+                      <span className="text-gray-600">
+                        {bookingType === 'custom' ? 'Стоимость бронирования:' : 'Стоимость:'}
+                      </span>
                       <span className="font-medium">
-                        {formatPrice(getPriceForTariff(selectedTariff) * numberOfPeople)} ₽
+                        {bookingType === 'custom' 
+                          ? '300 ₽' 
+                          : `${formatPrice(getPriceForTariff(selectedTariff) * numberOfPeople)} ₽`
+                        }
                       </span>
                     </div>
                     
@@ -611,16 +722,22 @@ const TourDetails: React.FC = () => {
 
                 <button
                   onClick={handleBooking}
-                  disabled={!selectedScheduleId || availableSchedules.length === 0}
+                  disabled={
+                    (bookingType === 'scheduled' && (!selectedScheduleId || availableSchedules.length === 0)) ||
+                    (bookingType === 'custom' && !customDate)
+                  }
                   className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-colors ${
-                    !selectedScheduleId || availableSchedules.length === 0
+                    (bookingType === 'scheduled' && (!selectedScheduleId || availableSchedules.length === 0)) ||
+                    (bookingType === 'custom' && !customDate)
                       ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-[1.02] transition-transform'
                   }`}
                 >
-                  {availableSchedules.length === 0 
-                    ? 'Нет доступных мест' 
-                    : !selectedScheduleId 
+                  {bookingType === 'custom' 
+                    ? (!customDate ? 'Выберите дату' : 'Забронировать за 300₽')
+                    : (availableSchedules.length === 0 
+                      ? 'Нет доступных мест' 
+                      : !selectedScheduleId 
                       ? 'Выберите время экскурсии' 
                       : 'Забронировать за ' + formatPrice(
                           Math.round(
