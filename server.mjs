@@ -16,7 +16,8 @@ app.use(cors({
     'http://cv91330.tw1.ru',
     'http://cv91330.tw1.ru/*',
     'http://localhost:3000', 
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'https://ekskyrsiadima.onrender.com'
   ],
   methods: ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'User-Agent', 'Accept'],
