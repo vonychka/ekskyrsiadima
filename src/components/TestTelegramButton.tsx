@@ -35,29 +35,80 @@ const TestTelegramButton = () => {
 
       console.log('Отправляю тестовые данные на сервер:', testData);
 
-      // Используем наш сервер с правильным токеном
-      const response = await fetch('https://ekskyrsiadima.onrender.com/api/send-client-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(testData),
-      });
+      // Используем прямой вызов Telegram API без сервера
+      const botToken = '8209677930:AAFYQhWh_a4NvzRgnBjeJTO_Af5JkxWeauE';
+      const chatIds = [1183482279, 1537691086]; // Основной пользователь и dinisfrench
+      
+      const message = `
+🎫 НОВЫЙ ЗАКАЗ ЭКСКУРСИИ (ТЕСТ)
 
-      const data = await response.json();
-      console.log('Ответ сервера:', data);
+👤 КЛИЕНТ:
+ФИО: ${testData.fullName}
+Телефон: ${testData.phone}
+Email: ${testData.email}
 
-      if (response.ok) {
+📍 ЭКСКУРСИЯ:
+Название: ${testData.tourTitle}
+Дата: ${testData.tourDate}
+Время: ${testData.tourTime}
+Количество человек: ${testData.numberOfPeople}
+Тариф: ${testData.selectedTariff}
+
+💰 ОПЛАТА:
+Стоимость: ${testData.finalPrice} ₽
+Способ: ${testData.paymentMethod}
+ID платежа: ${testData.paymentId}
+
+⏰ Время: ${new Date().toLocaleString('ru-RU')}
+🔗 Канал: https://t.me/agenDima
+      `.trim();
+
+      let successCount = 0;
+      const errors: string[] = [];
+
+      // Отправляем каждому пользователю
+      for (const chatId of chatIds) {
+        try {
+          const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: message,
+              parse_mode: 'HTML',
+              disable_web_page_preview: false
+            }),
+          });
+
+          const result = await response.json();
+          
+          if (response.ok && result.ok) {
+            successCount++;
+            console.log(`✅ Сообщение отправлено пользователю ${chatId}`);
+          } else {
+            errors.push(`Пользователь ${chatId}: ${result.description}`);
+            console.error(`❌ Ошибка отправки пользователю ${chatId}:`, result);
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
+          errors.push(`Пользователь ${chatId}: ${errorMessage}`);
+          console.error(`❌ Сетевая ошибка для пользователя ${chatId}:`, error);
+        }
+      }
+
+      if (successCount > 0) {
         setResult({
           success: true,
-          message: '✅ Тестовое уведомление отправлено всем пользователям!',
-          details: `Отправлено ${data.details?.length || 1} пользователям`
+          message: `✅ Тестовое уведомление отправлено ${successCount} из ${chatIds.length} пользователям!`,
+          details: errors.length > 0 ? `Ошибки: ${errors.join(', ')}` : 'Все уведомления отправлены успешно'
         });
       } else {
         setResult({
           success: false,
-          message: '❌ Ошибка отправки',
-          details: data.error || 'Неизвестная ошибка'
+          message: '❌ Не удалось отправить уведомления',
+          details: errors.join(', ')
         });
       }
     } catch (error) {
