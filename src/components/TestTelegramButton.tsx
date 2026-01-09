@@ -22,19 +22,21 @@ const TestTelegramButton = () => {
         fullName: 'Тестовый Клиент',
         phone: '+7 (999) 123-45-67',
         email: 'test@example.com',
-        tourTitle: 'Боярская экскурсия (ТЕСТ)',
+        tourTitle: 'Тестовая экскурсия (ТЕСТ)',
         tourDate: new Date().toLocaleDateString('ru-RU'),
         tourTime: '14:00',
         numberOfPeople: 2,
         selectedTariff: 'standard',
-        finalPrice: 2000,
+        finalPrice: 1600,
         paymentMethod: 'ТЕСТОВЫЙ',
-        paymentId: 'test-' + Date.now()
+        paymentId: 'test-' + Date.now(),
+        selectedTime: '14:00'
       };
 
-      console.log('Отправляю тестовые данные в Telegram:', testData);
+      console.log('Отправляю тестовые данные на сервер:', testData);
 
-      // Динамический импорт чтобы избежать ошибок импорта
+      // Используем прямую отправку в Telegram через клиентский код
+      // чтобы избежать проблем с CORS
       const { sendToTelegram } = await import('../utils/telegramBot');
       const response = await sendToTelegram(testData);
       
