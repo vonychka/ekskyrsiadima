@@ -35,14 +35,31 @@ const TestTelegramButton = () => {
 
       console.log('Отправляю тестовые данные на сервер:', testData);
 
-      // Используем прямую отправку в Telegram через клиентский код
-      // чтобы избежать проблем с CORS
-      const { sendToTelegram } = await import('../utils/telegramBot');
-      const response = await sendToTelegram(testData);
-      
-      console.log('Ответ Telegram:', response);
+      // Используем тот же URL что и реальные платежи
+      const response = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/send-client-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testData),
+      });
 
-      setResult(response);
+      const data = await response.json();
+      console.log('Ответ сервера:', data);
+
+      if (response.ok) {
+        setResult({
+          success: true,
+          message: '✅ Тестовое уведомление отправлено всем пользователям!',
+          details: `Отправлено ${data.details?.length || 1} пользователям`
+        });
+      } else {
+        setResult({
+          success: false,
+          message: '❌ Ошибка отправки',
+          details: data.error || 'Неизвестная ошибка'
+        });
+      }
     } catch (error) {
       console.error('Ошибка теста:', error);
       setResult({
