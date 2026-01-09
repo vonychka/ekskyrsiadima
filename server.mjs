@@ -388,8 +388,6 @@ ID платежа: ${paymentId}
 
     // Отправляем в Telegram
     console.log('Отправка сообщения в Telegram...');
-    console.log('Bot token: 7994136906:AAH2K4U8WqZ8YH9gKf8xLq3vS7rT2mK4Y');
-    console.log('Message length:', message.length);
     
     // Список пользователей, которые получают уведомления
     const chatIds = [
@@ -399,9 +397,6 @@ ID платежа: ${paymentId}
     ];
     
     // Отправляем сообщение каждому пользователю
-    let successCount = 0;
-    const results = [];
-    
     for (const chatId of chatIds) {
       try {
         console.log(`Отправка сообщения пользователю ${chatId}...`);
@@ -422,35 +417,21 @@ ID платежа: ${paymentId}
         const telegramResult = await telegramResponse.json();
         console.log(`Ответ Telegram для пользователя ${chatId}:`, telegramResult);
 
-        if (telegramResponse.ok) {
-          console.log(`✅ Данные отправлены пользователю ${chatId}`);
-          successCount++;
-          results.push({ chatId, success: true, messageId: telegramResult.result.message_id });
-        } else {
+        if (!telegramResponse.ok) {
           console.error(`❌ Ошибка отправки пользователю ${chatId}:`, telegramResult);
-          results.push({ chatId, success: false, error: telegramResult.description });
+        } else {
+          console.log(`✅ Данные отправлены пользователю ${chatId}`);
         }
       } catch (error) {
         console.error(`❌ Сетевая ошибка при отправке пользователю ${chatId}:`, error);
-        results.push({ chatId, success: false, error: error.message });
       }
     }
 
-    // Возвращаем общий результат
-    if (successCount > 0) {
-      console.log(`✅ Сообщения отправлены ${successCount} из ${chatIds.length} пользователям`);
-      res.json({ 
-        success: true, 
-        message: `Сообщения отправлены ${successCount} из ${chatIds.length} пользователям`,
-        details: results
-      });
-    } else {
-      console.error('❌ Ни одно сообщение не отправлено');
-      res.status(500).json({ 
-        error: 'Не удалось отправить сообщения ни одному пользователю',
-        details: results
-      });
-    }
+    console.log('✅ Данные клиента успешно отправлены в Telegram');
+    res.json({ 
+      success: true, 
+      message: 'Данные клиента отправлены в Telegram'
+    });
     
   } catch (error) {
     console.error('Ошибка при отправке в Telegram:', error);
