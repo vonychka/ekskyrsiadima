@@ -50,6 +50,7 @@ const TourDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [bookingType, setBookingType] = useState<'scheduled' | 'custom'>('scheduled');
   const [customDate, setCustomDate] = useState<string>('');
+  const [customTime, setCustomTime] = useState<string>('');
   
   // Get data from context
   const { tours, schedules, loading } = useToursContext();
@@ -173,11 +174,17 @@ const TourDetails: React.FC = () => {
         return;
       }
       
+      if (!customTime) {
+        alert('Пожалуйста, выберите желаемое время');
+        return;
+      }
+      
       // For custom booking, price is always 300₽
       const finalPrice = 300;
       
       console.log('Custom booking debug:', {
         customDate,
+        customTime,
         numberOfPeople,
         finalPrice,
         bookingType
@@ -191,6 +198,7 @@ const TourDetails: React.FC = () => {
           numberOfPeople: numberOfPeople,
           selectedTariff: selectedTariff,
           customDate: customDate,
+          customTime: customTime,
           bookingType: 'custom',
           finalPrice: finalPrice,
           appliedPromoCode: appliedPromoCode
@@ -634,6 +642,31 @@ const TourDetails: React.FC = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
+                    
+                    <label className="block text-sm font-medium text-gray-700 mb-3 mt-4">
+                      Выберите желаемое время
+                    </label>
+                    <select
+                      value={customTime}
+                      onChange={(e) => setCustomTime(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="">Выберите время</option>
+                      <option value="09:00">09:00</option>
+                      <option value="10:00">10:00</option>
+                      <option value="11:00">11:00</option>
+                      <option value="12:00">12:00</option>
+                      <option value="13:00">13:00</option>
+                      <option value="14:00">14:00</option>
+                      <option value="15:00">15:00</option>
+                      <option value="16:00">16:00</option>
+                      <option value="17:00">17:00</option>
+                      <option value="18:00">18:00</option>
+                      <option value="19:00">19:00</option>
+                      <option value="20:00">20:00</option>
+                    </select>
+                    
                     <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                       <div className="flex items-start space-x-2">
                         <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -719,17 +752,17 @@ const TourDetails: React.FC = () => {
                   onClick={handleBooking}
                   disabled={
                     (bookingType === 'scheduled' && (!selectedScheduleId || availableSchedules.length === 0)) ||
-                    (bookingType === 'custom' && !customDate)
+                    (bookingType === 'custom' && (!customDate || !customTime))
                   }
                   className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-colors ${
                     (bookingType === 'scheduled' && (!selectedScheduleId || availableSchedules.length === 0)) ||
-                    (bookingType === 'custom' && !customDate)
+                    (bookingType === 'custom' && (!customDate || !customTime))
                       ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-[1.02] transition-transform'
                   }`}
                 >
                   {bookingType === 'custom' 
-                    ? (!customDate ? 'Выберите дату' : 'Забронировать за 300₽')
+                    ? (!customDate || !customTime ? 'Выберите дату и время' : 'Забронировать за 300₽')
                     : (availableSchedules.length === 0 
                       ? 'Нет доступных мест' 
                       : !selectedScheduleId 

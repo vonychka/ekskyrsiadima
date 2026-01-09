@@ -8,6 +8,7 @@ interface BookingState {
   numberOfPeople: number;
   selectedTariff: string;
   customDate?: string;
+  customTime?: string;
   bookingType: 'scheduled' | 'custom';
   finalPrice: number;
   appliedPromoCode: string;
@@ -46,8 +47,9 @@ const BookingPage: React.FC = () => {
         numberOfPeople: bookingData.numberOfPeople,
         selectedTariff: bookingData.selectedTariff,
         customDate: bookingData.customDate,
+        customTime: bookingData.customTime,
         bookingType: bookingData.bookingType,
-        finalPrice: bookingData.finalPrice,
+        totalAmount: bookingData.finalPrice, // PaymentPage ожидает totalAmount
         appliedPromoCode: bookingData.appliedPromoCode
       }
     });
@@ -94,11 +96,11 @@ const BookingPage: React.FC = () => {
                   </div>
                   <div className="text-sm text-gray-600">
                     {bookingData.bookingType === 'custom' 
-                      ? new Date(bookingData.customDate || '').toLocaleDateString('ru-RU', {
+                      ? `${new Date(bookingData.customDate || '').toLocaleDateString('ru-RU', {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric'
-                        })
+                        })} в ${bookingData.customTime}`
                       : 'Стандартное бронирование'
                     }
                   </div>
