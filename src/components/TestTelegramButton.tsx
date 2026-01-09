@@ -35,8 +35,8 @@ const TestTelegramButton = () => {
 
       console.log('Отправляю тестовые данные на сервер:', testData);
 
-      // Используем тот же URL что и реальные платежи
-      const response = await fetch('https://nextjs-boilerplateuexkyesua.onrender.com/api/send-client-data', {
+      // Используем наш сервер с правильным токеном
+      const response = await fetch('https://ekskyrsiadima.onrender.com/api/send-client-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
