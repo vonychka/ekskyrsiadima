@@ -1,32 +1,38 @@
 import React, { useState, useEffect } from 'react';
 // import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-// Пробуем альтернативный подход с Firebase
+// Используем динамический импорт для Firebase
 let database: any = null;
 
-try {
-  // Импортируем Firebase с try-catch
-  const firebase = require('firebase/app');
-  require('firebase/database');
-  
-  const firebaseConfig = {
-    apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
-    authDomain: "ekskyrsiadima.firebaseapp.com",
-    databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
-    projectId: "ekskyrsiadima",
-    storageBucket: "ekskyrsiadima.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef123456789012345"
-  };
-  
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+const initializeFirebase = async () => {
+  try {
+    // Динамически импортируем Firebase
+    const firebaseModule = await import('firebase/app');
+    const databaseModule = await import('firebase/database');
+    
+    const firebase = firebaseModule.default;
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
+      authDomain: "ekskyrsiadima.firebaseapp.com",
+      databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
+      projectId: "ekskyrsiadima",
+      storageBucket: "ekskyrsiadima.appspot.com",
+      messagingSenderId: "123456789012",
+      appId: "1:123456789012:web:abcdef123456789012345"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    database = firebase.database();
+    console.log('Firebase успешно инициализирован для аналитики');
+    return true;
+  } catch (error) {
+    console.error('Ошибка инициализации Firebase:', error);
+    return false;
   }
-  database = firebase.database();
-  console.log('Firebase успешно инициализирован для аналитики');
-} catch (error) {
-  console.error('Ошибка инициализации Firebase:', error);
-}
+};
 
 interface ClickData {
   buttonId: string;
@@ -52,46 +58,52 @@ const AnalyticsPage: React.FC = () => {
   const [firebaseError, setFirebaseError] = useState(false);
 
   useEffect(() => {
-    if (!database) {
-      setFirebaseError(true);
-      setLoading(false);
-      return;
-    }
-
-    // Используем реальный Firebase
-    const analyticsRef = database.ref('analytics');
-    
-    const unsubscribe = analyticsRef.on('value', (snapshot: any) => {
-      const data = snapshot.val();
-      if (data) {
-        const processedData: AnalyticsData = {};
-        let total = 0;
-        
-        Object.keys(data).forEach(buttonId => {
-          const buttonData = data[buttonId];
-          processedData[buttonId] = {
-            buttonText: buttonData.buttonText || buttonId,
-            page: buttonData.page || 'Unknown',
-            clicks: buttonData.clicks || 0,
-            lastClick: buttonData.lastClick || 0
-          };
-          total += buttonData.clicks || 0;
-        });
-        
-        setAnalyticsData(processedData);
-        setTotalClicks(total);
-      } else {
-        setAnalyticsData({});
-        setTotalClicks(0);
+    const setupAnalytics = async () => {
+      const firebaseInitialized = await initializeFirebase();
+      
+      if (!firebaseInitialized || !database) {
+        setFirebaseError(true);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    }, (error: any) => {
-      console.error('Ошибка Firebase:', error);
-      setFirebaseError(true);
-      setLoading(false);
-    });
 
-    return () => unsubscribe();
+      // Используем реальный Firebase
+      const analyticsRef = database.ref('analytics');
+      
+      const unsubscribe = analyticsRef.on('value', (snapshot: any) => {
+        const data = snapshot.val();
+        if (data) {
+          const processedData: AnalyticsData = {};
+          let total = 0;
+          
+          Object.keys(data).forEach(buttonId => {
+            const buttonData = data[buttonId];
+            processedData[buttonId] = {
+              buttonText: buttonData.buttonText || buttonId,
+              page: buttonData.page || 'Unknown',
+              clicks: buttonData.clicks || 0,
+              lastClick: buttonData.lastClick || 0
+            };
+            total += buttonData.clicks || 0;
+          });
+          
+          setAnalyticsData(processedData);
+          setTotalClicks(total);
+        } else {
+          setAnalyticsData({});
+          setTotalClicks(0);
+        }
+        setLoading(false);
+      }, (error: any) => {
+        console.error('Ошибка Firebase:', error);
+        setFirebaseError(true);
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
+    };
+
+    setupAnalytics();
   }, []);
 
   const formatDate = (timestamp: number) => {

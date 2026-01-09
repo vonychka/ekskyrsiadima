@@ -1,29 +1,39 @@
-// Пробуем альтернативный подход с Firebase
+// Используем динамический импорт для Firebase
 let database: any = null;
+let firebaseInitialized = false;
 
-try {
-  // Импортируем Firebase с try-catch
-  const firebase = require('firebase/app');
-  require('firebase/database');
+const initializeFirebaseAnalytics = async () => {
+  if (firebaseInitialized) return database;
   
-  const firebaseConfig = {
-    apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
-    authDomain: "ekskyrsiadima.firebaseapp.com",
-    databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
-    projectId: "ekskyrsiadima",
-    storageBucket: "ekskyrsiadima.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef123456789012345"
-  };
-  
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+  try {
+    // Динамически импортируем Firebase
+    const firebaseModule = await import('firebase/app');
+    const databaseModule = await import('firebase/database');
+    
+    const firebase = firebaseModule.default;
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyD4VQ5-2Q8V9F3W7R6T5Y4U3I2O1P0Q9R8",
+      authDomain: "ekskyrsiadima.firebaseapp.com",
+      databaseURL: "https://ekskyrsiadima-default-rtdb.firebaseio.com",
+      projectId: "ekskyrsiadima",
+      storageBucket: "ekskyrsiadima.appspot.com",
+      messagingSenderId: "123456789012",
+      appId: "1:123456789012:web:abcdef123456789012345"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    database = firebase.database();
+    firebaseInitialized = true;
+    console.log('Firebase успешно инициализирован для аналитики');
+    return database;
+  } catch (error) {
+    console.error('Ошибка инициализации Firebase в analytics:', error);
+    return null;
   }
-  database = firebase.database();
-  console.log('Firebase успешно инициализирован для аналитики');
-} catch (error) {
-  console.error('Ошибка инициализации Firebase в analytics:', error);
-}
+};
 
 interface ClickData {
   buttonId: string;
@@ -104,13 +114,16 @@ export class Analytics {
       const timestamp = Date.now();
       const date = new Date().toISOString().split('T')[0];
 
-      if (!database) {
+      // Инициализируем Firebase если нужно
+      const db = await initializeFirebaseAnalytics();
+      
+      if (!db) {
         console.log(`Analytics: Клик отслежен - ${buttonText} (${buttonId}) на странице ${page} (Firebase недоступен)`);
         return;
       }
 
       // Получаем текущие данные для этой кнопки
-      const buttonRef = database.ref(`analytics/${buttonId}`);
+      const buttonRef = db.ref(`analytics/${buttonId}`);
       const snapshot = await buttonRef.once('value');
       const currentData = snapshot.val() || {
         buttonText,
@@ -130,7 +143,7 @@ export class Analytics {
       await buttonRef.set(updatedData);
 
       // Добавляем запись в историю
-      const historyRef = database.ref(`analytics_history/${buttonId}/${timestamp}`);
+      const historyRef = db.ref(`analytics_history/${buttonId}/${timestamp}`);
       await historyRef.set({
         buttonText,
         page,
@@ -247,17 +260,20 @@ export class Analytics {
   }
 
   // Метод для ручного отслеживания кликов
-  public trackManualClick(buttonId: string, buttonText: string, page?: string) {
+  public async trackManualClick(buttonId: string, buttonText: string, page?: string) {
     const timestamp = Date.now();
     const date = new Date().toISOString().split('T')[0];
     const currentPage = page || this.getCurrentPage();
 
-    if (!database) {
+    // Инициализируем Firebase если нужно
+    const db = await initializeFirebaseAnalytics();
+    
+    if (!db) {
       console.log(`Analytics: Ручной клик отслежен - ${buttonText} (${buttonId}) на странице ${currentPage} (Firebase недоступен)`);
       return;
     }
 
-    const buttonRef = database.ref(`analytics/${buttonId}`);
+    const buttonRef = db.ref(`analytics/${buttonId}`);
     const updatedData = {
       buttonText,
       page: currentPage,
@@ -271,8 +287,8 @@ export class Analytics {
 }
 
 // Экспортируем функцию для удобного использования
-export const trackClick = (buttonId: string, buttonText: string, page?: string) => {
-  Analytics.getInstance().trackManualClick(buttonId, buttonText, page);
+export const trackClick = async (buttonId: string, buttonText: string, page?: string) => {
+  await Analytics.getInstance().trackManualClick(buttonId, buttonText, page);
 };
 
 // Автоматически инициализируем аналитику при импорте
