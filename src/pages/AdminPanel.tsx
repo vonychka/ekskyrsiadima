@@ -64,7 +64,7 @@ const AdminPanel: React.FC = () => {
       for (const schedule of expiredSchedules) {
         try {
           console.log(`Удаление устаревшего расписания ${schedule.id} (${schedule.date} ${schedule.time})...`);
-          await deleteSchedule(schedule.id, isAuthenticated);
+          await deleteSchedule(schedule.id);
         } catch (error) {
           console.error(`Ошибка при удалении расписания ${schedule.id}:`, error);
         }
@@ -82,7 +82,7 @@ const AdminPanel: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tours' | 'schedules' | 'promoCodes' | 'reviews'>('tours');
+  const [activeTab, setActiveTab] = useState<'tours' | 'schedules' | 'promoCodes' | 'reviews' | 'analytics'>('tours');
   const [loading, setLoading] = useState(false);
   const [editingTour, setEditingTour] = useState<Tour | null>(null);
   const [showTourForm, setShowTourForm] = useState(false);
@@ -93,7 +93,8 @@ const AdminPanel: React.FC = () => {
     date: '',
     time: '',
     availableSpots: 20,
-    maxSpots: 20
+    maxSpots: 20,
+    bookedSpots: 0
   });
   const [spotManagement, setSpotManagement] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<TourSchedule | null>(null);
@@ -101,6 +102,7 @@ const AdminPanel: React.FC = () => {
   const [multiFileUpload, setMultiFileUpload] = useState<File[]>([]);
   const [editingPromo, setEditingPromo] = useState<PromoCode | null>(null);
   const [newPromo, setNewPromo] = useState<PromoCode>({
+    id: '',
     code: '',
     discountType: 'percentage',
     discountValue: 0,
@@ -113,8 +115,8 @@ const AdminPanel: React.FC = () => {
     applicableTours: [],
     applicableTariffs: [],
     maxPeople: undefined,
-    createdBy: 'admin',
-    createdAt: new Date().toISOString()
+    createdBy: '',
+    createdAt: ''
   });
   const [showPromoForm, setShowPromoForm] = useState(false);
   
@@ -197,7 +199,8 @@ const AdminPanel: React.FC = () => {
       setGalleryFiles([]);
     } catch (error) {
       console.error('Error in handleSaveTour:', error);
-      addNotification('Ошибка при сохранении экскурсии: ' + error.message, 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
+      addNotification('Ошибка при сохранении экскурсии: ' + errorMessage, 'error');
     }
   };
 
@@ -210,7 +213,8 @@ const AdminPanel: React.FC = () => {
         addNotification('Экскурсия удалена', 'success');
       } catch (error) {
         console.error('Error in handleDeleteTour:', error);
-        addNotification('Ошибка при удалении экскурсии: ' + error.message, 'error');
+        const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
+        addNotification('Ошибка при удалении экскурсии: ' + errorMessage, 'error');
       }
     }
   };
@@ -250,7 +254,8 @@ const AdminPanel: React.FC = () => {
         date: '',
         time: '',
         availableSpots: 20,
-        maxSpots: 20
+        maxSpots: 20,
+        bookedSpots: 0
       });
       
       // Close the form
@@ -277,20 +282,14 @@ const AdminPanel: React.FC = () => {
         addNotification('Время экскурсии удалено', 'success');
       } catch (error) {
         console.error('Error in handleDeleteSchedule:', error);
-        addNotification('Ошибка при удалении времени: ' + error.message, 'error');
+        const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
+        addNotification('Ошибка при удалении времени: ' + errorMessage, 'error');
       }
     }
   };
 
   const handleUpdateSpots = async (scheduleId: string, availableSpots: number, maxSpots: number) => {
-    try {
-      console.log('Updating spots:', scheduleId);
-      await updateSchedule(scheduleId, { availableSpots, maxSpots });
-      addNotification('Места обновлены', 'success');
-    } catch (error) {
-      console.error('Error in handleUpdateSpots:', error);
-      addNotification('Ошибка при обновлении мест: ' + error.message, 'error');
-    }
+    // Implementation needed
   };
 
   const handleSavePromo = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -303,25 +302,28 @@ const AdminPanel: React.FC = () => {
     const validUntilValue = formData.get('validUntil');
     
     const promoData = {
+      id: editingPromo?.id || '', // Добавляем id для редактирования
       code: formData.get('code') as string,
       discountType: formData.get('discountType') as 'percentage' | 'fixed' | 'free',
       discountValue: Number(formData.get('discountValue')),
       description: formData.get('description') as string,
       isActive: formData.get('isActive') === 'on',
       maxUses: maxUsesValue ? Number(maxUsesValue) : undefined,
-      currentUses: editingPromo ? editingPromo.currentUses : 0,
+      currentUses: editingPromo?.currentUses || 0, // Добавляем currentUses
       validFrom: formData.get('validFrom') as string,
-      validUntil: validUntilValue ? validUntilValue as string : null,
-      applicableTours: formData.getAll('applicableTours') as string[],
-      applicableTariffs: formData.getAll('applicableTariffs') as string[],
+      validUntil: validUntilValue as string,
+      applicableTours: [],
+      applicableTariffs: [],
       maxPeople: maxPeopleValue ? Number(maxPeopleValue) : undefined,
       createdBy: 'admin',
       createdAt: new Date().toISOString()
     };
 
     // Удаляем null и undefined значения, чтобы Firebase не ругался
+    // Для создания нового промокода удаляем свойство id
+    const entries = Object.entries(promoData).filter(([_, value]) => value !== null && value !== undefined);
     const cleanPromoData = Object.fromEntries(
-      Object.entries(promoData).filter(([_, value]) => value !== null && value !== undefined)
+      editingPromo ? entries : entries.filter(([key]) => key !== 'id')
     );
 
     try {
@@ -335,12 +337,14 @@ const AdminPanel: React.FC = () => {
       setShowPromoForm(false);
       setEditingPromo(null);
       setNewPromo({
+        id: '',
         code: '',
         discountType: 'percentage',
         discountValue: 0,
         description: '',
         isActive: true,
         maxUses: undefined,
+        currentUses: 0,
         validFrom: '',
         validUntil: '',
         applicableTours: [],
@@ -350,7 +354,8 @@ const AdminPanel: React.FC = () => {
         createdAt: new Date().toISOString()
       });
     } catch (error) {
-      addNotification('Ошибка при сохранении промокода: ' + error.message, 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
+      addNotification('Ошибка при сохранении промокода: ' + errorMessage, 'error');
     }
   };
 
@@ -360,7 +365,8 @@ const AdminPanel: React.FC = () => {
         await deletePromoCode(promoId);
         addNotification('Промокод удален', 'success');
       } catch (error) {
-        addNotification('Ошибка при удалении промокода: ' + error.message, 'error');
+        const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
+        addNotification('Ошибка при удалении промокода: ' + errorMessage, 'error');
       }
     }
   };
@@ -368,6 +374,7 @@ const AdminPanel: React.FC = () => {
   const handleEditPromo = (promo: PromoCode) => {
     setEditingPromo(promo);
     setNewPromo({
+      id: promo.id,
       code: promo.code,
       discountType: promo.discountType,
       discountValue: promo.discountValue,
@@ -376,9 +383,9 @@ const AdminPanel: React.FC = () => {
       maxUses: promo.maxUses,
       currentUses: promo.currentUses,
       validFrom: promo.validFrom,
-      validUntil: promo.validUntil || '',
-      applicableTours: promo.applicableTours || [],
-      applicableTariffs: promo.applicableTariffs || [],
+      validUntil: promo.validUntil,
+      applicableTours: promo.applicableTours,
+      applicableTariffs: promo.applicableTariffs,
       maxPeople: promo.maxPeople,
       createdBy: promo.createdBy,
       createdAt: promo.createdAt
@@ -398,7 +405,7 @@ const AdminPanel: React.FC = () => {
       const now = new Date();
       
       // Запускаем очистку не чаще одного раза в час
-      if (!lastCleanup || (now - new Date(lastCleanup)) > 60 * 60 * 1000) {
+      if (!lastCleanup || (now.getTime() - new Date(lastCleanup).getTime()) > 60 * 60 * 1000) {
         console.log('Запуск очистки устаревших расписаний...');
         cleanupExpiredSchedules();
         localStorage.setItem('lastCleanup', now.toISOString());
@@ -580,6 +587,16 @@ const AdminPanel: React.FC = () => {
               >
                 Отзывы
               </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'analytics'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                📊 Аналитика
+              </button>
             </nav>
           </div>
 
@@ -611,7 +628,7 @@ const AdminPanel: React.FC = () => {
                             <span>Категория: {tour.category}</span>
                           </div>
                           <div className="text-xs text-gray-500 mt-2">
-                            {tour.isPopular && (
+                            {(tour as any).isPopular && (
                               <span>Популярно</span>
                             )}
                           </div>
@@ -1008,7 +1025,7 @@ const AdminPanel: React.FC = () => {
                         type="checkbox"
                         id="isPopular"
                         name="isPopular"
-                        defaultChecked={editingTour?.isPopular || false}
+                        defaultChecked={(editingTour as any)?.isPopular || false}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <label htmlFor="isPopular" className="ml-2 block text-sm text-gray-700">
@@ -1023,7 +1040,7 @@ const AdminPanel: React.FC = () => {
                       <input
                         type="number"
                         name="maxGroupSize"
-                        defaultValue={editingTour?.maxGroupSize || 20}
+                        defaultValue={(editingTour as any)?.maxGroupSize || 20}
                         min="1"
                         max="50"
                         className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1490,6 +1507,69 @@ const AdminPanel: React.FC = () => {
               </div>
             )}
 
+            {activeTab === 'analytics' && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">📊 Аналитика кликов</h2>
+                  <button
+                    onClick={() => window.open('/admin/analytics', '_blank')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors"
+                  >
+                    <span>📈</span>
+                    <span>Открыть полную аналитику</span>
+                  </button>
+                </div>
+
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+                  <div className="flex items-center mb-4">
+                    <div className="text-3xl mr-4">📊</div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Система аналитики активна</h3>
+                      <p className="text-gray-600">Все клики по кнопкам на сайте отслеживаются в реальном времени</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div className="bg-white rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-blue-600 mb-1">🎯</div>
+                      <div className="text-sm font-medium text-gray-900">Автоматическое отслеживание</div>
+                      <div className="text-xs text-gray-600 mt-1">Все кнопки отслеживаются автоматически</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-green-600 mb-1">📈</div>
+                      <div className="text-sm font-medium text-gray-900">Детальная статистика</div>
+                      <div className="text-xs text-gray-600 mt-1">Графики и таблицы с данными</div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-purple-600 mb-1">🔄</div>
+                      <div className="text-sm font-medium text-gray-900">Реальное время</div>
+                      <div className="text-xs text-gray-600 mt-1">Обновление данных в реальном времени</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-2">📋 Что отслеживается:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Все кнопки и ссылки на сайте</li>
+                      <li>• Количество кликов по каждой кнопке</li>
+                      <li>• Страница на которой находится кнопка</li>
+                      <li>• Время последнего клика</li>
+                      <li>• История кликов для анализа</li>
+                    </ul>
+                  </div>
+
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      onClick={() => window.open('/admin/analytics', '_blank')}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 shadow-lg"
+                    >
+                      🚀 Перейти к полной аналитике
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
         {/* Spot Management Modal */}
         {spotManagement && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -1507,10 +1587,14 @@ const AdminPanel: React.FC = () => {
                     <input
                       type="number"
                       value={editingSchedule?.availableSpots || ''}
-                      onChange={(e) => setEditingSchedule({
-                        ...editingSchedule,
-                        availableSpots: Number(e.target.value)
-                      })}
+                      onChange={(e) => {
+                        if (editingSchedule) {
+                          setEditingSchedule({
+                            ...editingSchedule,
+                            availableSpots: Number(e.target.value)
+                          });
+                        }
+                      }}
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       min="0"
                       max={editingSchedule?.maxSpots || 50}

@@ -13,7 +13,9 @@ import PaymentError from './pages/PaymentError';
 import { TinkoffPaymentError } from './pages/TinkoffPaymentError';
 import TicketPage from './pages/TicketPage';
 import AdminPanel from './pages/AdminPanel';
+import AnalyticsPage from './pages/AnalyticsPage';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import Analytics from './utils/analytics';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -26,6 +28,11 @@ const ScrollToTop = () => {
 };
 
 function App() {
+  useEffect(() => {
+    // Инициализируем аналитику при загрузке приложения
+    Analytics.getInstance();
+  }, []);
+
   return (
     <HelmetProvider>
       <ToursProvider>
@@ -45,6 +52,7 @@ function App() {
                   <Route path="/payment/error" element={<PaymentError />} />
                   <Route path="/ticket" element={<TicketPage />} />
                   <Route path="/admin" element={<AdminPanel />} />
+                  <Route path="/admin/analytics" element={<AnalyticsPage />} />
                 </Routes>
               </Suspense>
             </main>
